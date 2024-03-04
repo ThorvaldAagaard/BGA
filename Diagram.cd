@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="BGA.Utils">
+    <Position X="2.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAEAAEAA=</HashCode>
+      <FileName>Utils.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BGA.Macros">
+    <Position X="0.5" Y="1" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="BGA.Macros.Trump">
+        <TypeIdentifier>
+          <NewMemberFileName>Macros.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="BGA.Macros.Suit">
+        <TypeIdentifier>
+          <NewMemberFileName>Macros.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="BGA.Macros.Player">
+        <TypeIdentifier>
+          <NewMemberFileName>Macros.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Macros.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BGA.Game">
+    <Position X="6.5" Y="1" Width="4" />
+    <Members>
+      <Field Name="components" Hidden="true" />
+      <Field Name="label1" Hidden="true" />
+      <Field Name="label2" Hidden="true" />
+      <Field Name="label3" Hidden="true" />
+      <Field Name="label4" Hidden="true" />
+      <Field Name="LC1" Hidden="true" />
+      <Field Name="LC2" Hidden="true" />
+      <Field Name="LC3" Hidden="true" />
+      <Field Name="LC4" Hidden="true" />
+      <Field Name="LLeader" Hidden="true" />
+      <Field Name="LLeftCounts" Hidden="true" />
+      <Field Name="LNHand" Hidden="true" />
+      <Field Name="LRank" Hidden="true" />
+      <Field Name="LRightCounts" Hidden="true" />
+      <Field Name="LSHand" Hidden="true" />
+      <Field Name="LStats" Hidden="true" />
+      <Field Name="LTime" Hidden="true" />
+      <Field Name="LTrump" Hidden="true" />
+    </Members>
+    <AssociationLine Name="deck" Type="BGA.Card" FixedToPoint="true">
+      <Path>
+        <Point X="6.5" Y="2.312" />
+        <Point X="6.323" Y="2.312" Type="JumpStart" />
+        <Point X="5.966" Y="2.312" Type="JumpEnd" />
+        <Point X="5.783" Y="2.312" Type="JumpStart" />
+        <Point X="5.617" Y="2.312" Type="JumpEnd" />
+        <Point X="4.488" Y="2.312" Type="JumpStart" />
+        <Point X="4.322" Y="2.312" Type="JumpEnd" />
+        <Point X="4" Y="2.312" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.785" Y="0.037" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="comparer" Type="BGA.CardComparer" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="6.5" Y="7.875" />
+        <Point X="4" Y="7.875" />
+        <Point X="4" Y="7.675" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
+        <Position X="-1.687" Y="0.287" Height="0.182" Width="0.817" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="played" Type="BGA.Card" FixedToPoint="true">
+      <Path>
+        <Point X="6.5" Y="2.625" />
+        <Point X="6.323" Y="2.625" Type="JumpStart" />
+        <Point X="5.966" Y="2.625" Type="JumpEnd" />
+        <Point X="5.783" Y="2.625" Type="JumpStart" />
+        <Point X="5.617" Y="2.625" Type="JumpEnd" />
+        <Point X="4.488" Y="2.625" Type="JumpStart" />
+        <Point X="4.322" Y="2.625" Type="JumpEnd" />
+        <Point X="4" Y="2.625" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.723" Y="0.036" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="northHand" Type="BGA.Card" FixedToPoint="true">
+      <Path>
+        <Point X="6.5" Y="1.688" />
+        <Point X="6.323" Y="1.688" Type="JumpStart" />
+        <Point X="5.966" Y="1.688" Type="JumpEnd" />
+        <Point X="5.783" Y="1.688" Type="JumpStart" />
+        <Point X="5.617" Y="1.688" Type="JumpEnd" />
+        <Point X="4.488" Y="1.688" Type="JumpStart" />
+        <Point X="4.322" Y="1.688" Type="JumpEnd" />
+        <Point X="4" Y="1.688" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.607" Y="0.037" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="southHand" Type="BGA.Card" FixedFromPoint="true">
+      <Path>
+        <Point X="6.5" Y="2" />
+        <Point X="6.323" Y="2" Type="JumpStart" />
+        <Point X="5.966" Y="2" Type="JumpEnd" />
+        <Point X="5.783" Y="2" Type="JumpStart" />
+        <Point X="5.617" Y="2" Type="JumpEnd" />
+        <Point X="4.488" Y="2" Type="JumpStart" />
+        <Point X="4.322" Y="2" Type="JumpEnd" />
+        <Point X="4" Y="2" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.603" Y="0.036" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="opposCards" Type="BGA.Card">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.596" Y="0.06" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="winningCard" Type="BGA.Card" FixedToPoint="true">
+      <Path>
+        <Point X="6.5" Y="2.938" />
+        <Point X="6.323" Y="2.938" Type="JumpStart" />
+        <Point X="5.966" Y="2.938" Type="JumpEnd" />
+        <Point X="5.783" Y="2.938" Type="JumpStart" />
+        <Point X="5.617" Y="2.938" Type="JumpEnd" />
+        <Point X="4.488" Y="2.938" Type="JumpStart" />
+        <Point X="4.322" Y="2.938" Type="JumpEnd" />
+        <Point X="4" Y="2.938" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.58" Y="0.039" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>IE0oCEIRwCACIJKWKISIhAGHSoPBQ0B5BYBRE6FknMI=</HashCode>
+      <FileName>Game.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="PIMC" />
+      <Field Name="comparer" />
+      <Field Name="winningCard" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Field Name="deck" />
+      <Field Name="played" />
+      <Field Name="northHand" />
+      <Field Name="southHand" />
+      <Field Name="opposCards" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BGA.PIMC">
+    <Position X="11.25" Y="1" Width="3.75" />
+    <AssociationLine Name="comparer" Type="BGA.CardComparer" ManuallyRouted="true">
+      <Path>
+        <Point X="13.125" Y="1" />
+        <Point X="13.125" Y="0.883" />
+        <Point X="12.724" Y="0.883" Type="JumpStart" />
+        <Point X="12.557" Y="0.883" Type="JumpEnd" />
+        <Point X="12.239" Y="0.883" Type="JumpStart" />
+        <Point X="12.073" Y="0.883" Type="JumpEnd" />
+        <Point X="6.323" Y="0.883" Type="JumpStart" />
+        <Point X="5.966" Y="0.883" Type="JumpEnd" />
+        <Point X="5.7" Y="0.883" />
+        <Point X="5.7" Y="6.963" />
+        <Point X="4.75" Y="6.963" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.12" Y="0.978" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="utils" Type="BGA.Utils" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="13.625" Y="1" />
+        <Point X="13.625" Y="0.731" />
+        <Point X="12.724" Y="0.731" Type="JumpStart" />
+        <Point X="12.557" Y="0.731" Type="JumpEnd" />
+        <Point X="12.239" Y="0.731" Type="JumpStart" />
+        <Point X="12.073" Y="0.731" Type="JumpEnd" />
+        <Point X="6.323" Y="0.731" Type="JumpStart" />
+        <Point X="5.966" Y="0.731" Type="JumpEnd" />
+        <Point X="4.405" Y="0.731" />
+        <Point X="4.405" Y="5.244" />
+        <Point X="4" Y="5.244" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.497" Y="0.01" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="played" Type="BGA.Card">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.497" Y="0.524" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="northHand" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="14.312" Y="1" />
+        <Point X="14.312" Y="0.282" />
+        <Point X="6.111" Y="0.282" />
+        <Point X="6.111" Y="3.562" />
+        <Point X="5.783" Y="3.562" Type="JumpStart" />
+        <Point X="5.617" Y="3.562" Type="JumpEnd" />
+        <Point X="4.488" Y="3.562" Type="JumpStart" />
+        <Point X="4.322" Y="3.562" Type="JumpEnd" />
+        <Point X="4" Y="3.562" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.601" Y="0.038" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="southHand" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="14.125" Y="1" />
+        <Point X="14.125" Y="0.368" />
+        <Point X="6.192" Y="0.368" />
+        <Point X="6.192" Y="3.875" />
+        <Point X="5.783" Y="3.875" Type="JumpStart" />
+        <Point X="5.617" Y="3.875" Type="JumpEnd" />
+        <Point X="4.488" Y="3.875" Type="JumpStart" />
+        <Point X="4.322" Y="3.875" Type="JumpEnd" />
+        <Point X="4" Y="3.875" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.613" Y="0.026" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="eastPlayed" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="14.5" Y="1" />
+        <Point X="14.5" Y="0.189" />
+        <Point X="6.049" Y="0.189" />
+        <Point X="6.049" Y="3.25" />
+        <Point X="5.783" Y="3.25" Type="JumpStart" />
+        <Point X="5.617" Y="3.25" Type="JumpEnd" />
+        <Point X="4.488" Y="3.25" Type="JumpStart" />
+        <Point X="4.322" Y="3.25" Type="JumpEnd" />
+        <Point X="4" Y="3.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.603" Y="0.036" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="westPlayed" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="13.938" Y="1" />
+        <Point X="13.938" Y="0.457" />
+        <Point X="6.24" Y="0.457" />
+        <Point X="6.24" Y="4.188" />
+        <Point X="5.783" Y="4.188" Type="JumpStart" />
+        <Point X="5.617" Y="4.188" Type="JumpEnd" />
+        <Point X="4.488" Y="4.188" Type="JumpStart" />
+        <Point X="4.322" Y="4.188" Type="JumpEnd" />
+        <Point X="4" Y="4.188" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.613" Y="0.026" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="opposCards" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="12.156" Y="1" />
+        <Point X="12.156" Y="0.628" />
+        <Point X="6.323" Y="0.628" Type="JumpStart" />
+        <Point X="5.966" Y="0.628" Type="JumpEnd" />
+        <Point X="3.625" Y="0.628" />
+        <Point X="3.625" Y="1" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.648" Y="0.067" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>QABMAkiASQIKAAEIIABICBCgDAJAAABBAAQBAJBAAAI=</HashCode>
+      <FileName>PIMC.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="comparer" />
+      <Field Name="utils" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Field Name="played" />
+      <Field Name="northHand" />
+      <Field Name="southHand" />
+      <Field Name="eastPlayed" />
+      <Field Name="westPlayed" />
+      <Field Name="opposCards" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BGA.Card">
+    <Position X="2.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAhAABAAQAAAAQEAAACAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Card.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BGA.CardComparer">
+    <Position X="2.5" Y="6.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAAAAAAA=</HashCode>
+      <FileName>Card.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BGA.DDS">
+    <Position X="15.25" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AQAQAAAAIEAAAAQAAAAAIAAAAAEAiAAASAABAACAABA=</HashCode>
+      <FileName>DDS.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
