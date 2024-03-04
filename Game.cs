@@ -1,28 +1,27 @@
-﻿using System;
+﻿using BGADLL;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using static BGA.Macros;
 using Args = System.Timers.ElapsedEventArgs;
 using Timer = System.Timers.Timer;
+using static BGADLL.Macros;
+using Buttons = System.Collections.Generic.List<System.Windows.Forms.Button>;
+using Orders = System.Collections.Generic.Dictionary<BGADLL.Macros.Trump, int[]>;
 
 namespace BGA
 {
-    using Buttons = List<Button>;
-    using Comparer = CardComparer;
-    using Hand = List<Card>;
-    using Orders = Dictionary<Trump, int[]>;
-
     public partial class Game : Form
     {
-        private readonly Hand deck = new List<string>()
-            { "S", "H", "D", "C" }.SelectMany(x =>
-            new List<string>() { "A", "K", "Q", "J", "T",
-                "9", "8", "7", "6", "5", "4", "3", "2" },
-            (x, y) => Card.Parse(y + x)).ToList();
+        private readonly Hand fullDeck = new Hand(
+            new List<string>() { "S", "H", "D", "C" }
+            .SelectMany(
+                x => new List<string>() { "A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2" },
+                (x, y) => Card.Parse(y + x))
+        );
 
         private readonly Orders orders = new Orders
         {
@@ -30,7 +29,7 @@ namespace BGA
             { Trump.Diamond, new int[4] { 1, 3, 2, 0 } },
             { Trump.Heart, new int[4] { 2, 3, 1, 0 } },
             { Trump.Spade, new int[4] { 3, 2, 0, 1 } },
-            { Trump.None, new int[4] { 3, 2, 0, 1 } }
+            { Trump.No, new int[4] { 3, 2, 0, 1 } }
         };
 
         private int takenByNS = 0;
@@ -39,7 +38,6 @@ namespace BGA
         private float maxThinkTime = 0.5f;
         private readonly PIMC PIMC = new PIMC();
         private readonly Buttons allCards = new Buttons();
-        private readonly Comparer comparer = new Comparer();
         private readonly Font boldFont = new Font("Tahoma",
             8.5F, FontStyle.Bold, GraphicsUnit.Point);
         private readonly Font stndFont = new Font("Tahoma",
@@ -198,15 +196,13 @@ namespace BGA
             this.TSHand.Text = this.TSHand.Text.ToUpper();
             this.northHand = this.TNHand.Text.Parse();
             this.southHand = this.TSHand.Text.Parse();
-            this.opposCards = this.deck.Except(
-                this.northHand.Union(this.southHand,
-                this.comparer), this.comparer).ToList();
+            this.opposCards = this.fullDeck.Except(this.northHand.Union(this.southHand));
         }
 
         private bool IsHigher(Card best, Card card)
         {
             Trump trump = (Trump)this.CTrump.SelectedIndex;
-            bool t_play = trump != Trump.None;
+            bool t_play = trump != Trump.No;
             bool t_suit = best.Suit.Equals(card.Suit);
             bool t_best = best.Suit.Equals((Suit)trump);
             bool t_card = card.Suit.Equals((Suit)trump);
@@ -217,7 +213,7 @@ namespace BGA
             return card.CompareTo(best) > 0;
         }
 
-        internal IEnumerable<string> LegitMoves(Player player)
+        public IEnumerable<string> LegitMoves(Player player)
         {
             Hand cards = new List<Hand>() {
                 this.northHand, this.opposCards,
@@ -290,7 +286,7 @@ namespace BGA
                 this.BSPool.Text = button.Text;
                 this.BSPool.ForeColor = color;
             }
-            
+
             if (card == null) return;
             if (this.leader == Player.North || this.leader == Player.South)
             {
@@ -397,7 +393,7 @@ namespace BGA
                 this.southHand.Count == 0) return;
             this.PIMC.SetupEvaluation(new Hand[2] {
                 this.northHand, this.southHand },
-                this.opposCards, this.played, legal,
+                this.opposCards, this.played,
                 new Details[2] { this.oldEastDetails,
                 this.oldWestDetails }, this.leader);
             int trump = this.CTrump.SelectedIndex;

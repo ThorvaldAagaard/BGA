@@ -1,3 +1,8 @@
+# Forked project
+
+This is forked from BGA, and compiled into a DLL used from BEN, the open source bridge engine.
+
+
 # BGA
 
 Bridge Gameplay Analysis (BSc Thesis project)

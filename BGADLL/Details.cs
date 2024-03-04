@@ -1,20 +1,20 @@
 ﻿using System;
-using static BGA.Macros;
+using static BGADLL.Macros;
 
-namespace BGA
+namespace BGADLL
 {
-    internal class Details : ICloneable
+    public class Details : ICloneable
     {
-        internal int MinClubs { get; set; }
-        internal int MaxClubs { get; set; }
-        internal int MinDiamonds { get; set; }
-        internal int MaxDiamonds { get; set; }
-        internal int MinHearts { get; set; }
-        internal int MaxHearts { get; set; }
-        internal int MinSpades { get; set; }
-        internal int MaxSpades { get; set; }
-        internal int MinHCP { get; set; }
-        internal int MaxHCP { get; set; }
+        public int MinClubs { get; set; }
+        public int MaxClubs { get; set; }
+        public int MinDiamonds { get; set; }
+        public int MaxDiamonds { get; set; }
+        public int MinHearts { get; set; }
+        public int MaxHearts { get; set; }
+        public int MinSpades { get; set; }
+        public int MaxSpades { get; set; }
+        public int MinHCP { get; set; }
+        public int MaxHCP { get; set; }
 
         public Details(int minClubs, int maxClubs, int minDiamonds,
             int maxDiamonds, int minHearts, int maxHearts,
@@ -61,7 +61,7 @@ namespace BGA
 
         public object Clone() => this.MemberwiseClone();
 
-        internal Details Copy() => (Details)this.Clone();
+        public Details Copy() => (Details)this.Clone();
 
         public override string ToString()
         {

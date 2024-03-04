@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using static BGA.Macros;
+using static BGADLL.Macros;
 
-namespace BGA
+namespace BGADLL
 {
-    internal class DDS
+    public class DDS
     {
         private IntPtr solver = IntPtr.Zero;
 
@@ -32,43 +32,43 @@ namespace BGA
         [DllImport("libbcalcdds.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr bcalcDDS_getLastError(IntPtr solver);
 
-        internal DDS(IntPtr solver) => this.solver = solver;
+        public DDS(IntPtr solver) => this.solver = solver;
 
-        internal DDS(string hands, Trump trump, Player leader)
+        public DDS(string hands, Trump trump, Player leader)
         {
             IntPtr deal = Marshal.StringToHGlobalAnsi(hands);
             IntPtr format = Marshal.StringToHGlobalAnsi("NESW");
             this.solver = bcalcDDS_new(format, deal, (Int32)trump, (Int32)leader);
         }
 
-        internal IntPtr Clone()
+        public IntPtr Clone()
         {
             return bcalcDDS_clone(this.solver);
         }
 
-        internal void Delete()
+        public void Delete()
         {
             bcalcDDS_delete(this.solver);
         }
 
-        internal void Execute(string commands)
+        public void Execute(string commands)
         {
             IntPtr cmds = Marshal.StringToHGlobalAnsi(commands);
             bcalcDDS_exec(this.solver, cmds);
         }
 
-        internal string LastError()
+        public string LastError()
         {
             IntPtr ptr = bcalcDDS_getLastError(this.solver);
             return Marshal.PtrToStringAnsi(ptr);
         }
 
-        internal int Tricks()
+        public int Tricks()
         {
             return bcalcDDS_getTricksToTake(this.solver);
         }
 
-        internal int Tricks(string card)
+        public int Tricks(string card)
         {
             IntPtr move = Marshal.StringToHGlobalAnsi(card);
             return bcalcDDS_getTricksToTakeEx(this.solver, -1, move);

@@ -1,17 +1,17 @@
-﻿namespace BGA
+﻿namespace BGADLL
 {
-    internal class Macros
+    public class Macros
     {
-        internal enum Trump
+        public enum Trump
         {
             Club = 0,
             Diamond = 1,
             Heart = 2,
             Spade = 3,
-            None = 4
+            No = 4
         };
 
-        internal enum Suit
+        public enum Suit
         {
             Club = 0,
             Diamond = 1,
@@ -19,7 +19,7 @@
             Spade = 3,
         };
 
-        internal enum Player
+        public enum Player
         {
             North = 0,
             East = 1,
