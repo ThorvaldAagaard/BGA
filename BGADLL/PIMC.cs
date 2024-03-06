@@ -27,6 +27,9 @@ namespace BGADLL
         private readonly Queue queue = new Queue();
         private readonly Utils utils = new Utils();
         private Random random = null;
+        private int noOfCombinations = 0;
+        private int examined = 0;
+        private int seed = 0;
 
         // player hands
         private Hand played = null;
@@ -39,9 +42,12 @@ namespace BGADLL
         private readonly Hand opposCards = new Hand();
 
         // getters
+        public int Combinations => this.noOfCombinations;
+        public int Examined => this.examined;
         public int Playouts => this.playouts;
         public bool Evaluating => this.evaluate || this.threads != this.free;
         public IEnumerable<string> LegalMoves => this.legalMoves;
+        public string LegalMovesToString => string.Join(", ", LegalMoves);
         public Output Output => this.output;
 
         public PIMC()
@@ -71,6 +77,8 @@ namespace BGADLL
             this.westPlayed.Clear();
             this.opposCards.Clear();
             this.Clear(this.combinations);
+            this.noOfCombinations = 0;
+            this.examined = 0;
             while (!this.queue.IsEmpty)
                 this.queue.TryDequeue(out _);
         }
@@ -78,13 +86,17 @@ namespace BGADLL
         public void LoadCombinations()
         {
             int n = this.N, k = this.K;
-            int sum = this.utils.Count(n, k);
-            int[] array = new int[sum];
-            for (int i = 0; i < sum; i++) array[i] = i;
-            this.utils.Shuffle(array, sum, this.random);
-            foreach (int i in array) this.queue.Enqueue(i);
+            noOfCombinations = this.utils.Count(n, k);
+            int[] array = new int[noOfCombinations];
+            // Create all combinations
             foreach (byte[] series in this.utils.Generate(n, k))
                 this.combinations.Add(series.ToArray());
+
+            for (int i = 0; i < noOfCombinations; i++) array[i] = i;
+            // Shuffle the order combination is processed
+            this.utils.Shuffle(array, noOfCombinations, this.random);
+            // And queue all combinations
+            foreach (int i in array) this.queue.Enqueue(i);
         }
 
         public IEnumerable<string> LegitMoves(Player player)
@@ -100,8 +112,7 @@ namespace BGADLL
         }
 
 
-        public void SetupEvaluation(Hand[] our, Hand oppos, Hand played,
-            Details[] details, Player leader)
+        public void SetupEvaluation(Hand[] our, Hand oppos, Hand played, Details[] details, Player leader)
         {
             //Console.WriteLine("SetupEvaluation");
             this.played = played;
@@ -141,8 +152,11 @@ namespace BGADLL
             this.playouts = 0;
             this.leader = player;
 
-            int seed = CalculateSeed(this.northHand.ToString()+ this.southHand.ToString()); 
-            this.random = new Random(seed);
+            if (seed == 0)
+            {
+                seed = CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
+                this.random = new Random(seed);
+            }
 
             this.LoadCombinations();
         }
@@ -189,41 +203,50 @@ namespace BGADLL
 
                             // recover hands before leads
                             var set = this.combinations[pos];
+                            Interlocked.Increment(ref this.examined);
                             Hand westHand = new Hand(set.Select(index => this.opposCards[index - 1]));
-                            westHand = westHand.Concat(this.westPlayed);
-                            var eastHand = this.opposCards.Except(westHand).Concat(this.eastPlayed);
+                            var eastHand = this.opposCards.Except(westHand);
 
                             // exclude impossible hands
                             if (this.Ignore(eastHand, this.eastDetails) ||
-                                this.Ignore(westHand, this.westDetails)) continue;
+                                this.Ignore(westHand, this.westDetails))
+                            {
+                                Interlocked.Decrement(ref this.playouts);
+                                //Console.WriteLine("Hand ignored N:{0}", N + " " + eastHand + " " + S + " " + westHand);
+                                continue;
+                            }
 
+                            // Constraints are updated after each played card, so is added after check, before DDS
+                            westHand = westHand.Concat(this.westPlayed);
+                            eastHand = eastHand.Concat(this.eastPlayed);
                             // DDS analysis
                             string E = eastHand.ToString(), W = westHand.ToString();
                             string format = N + " " + E + " " + S + " " + W;
+                
                             DDS dds = new DDS(format, trump, this.leader);
                             if (this.commands != "") dds.Execute(this.commands);
                             Player opposite = this.leader.Next().Next();
                             foreach (string card in this.legalMoves)
                             {
                                 int tricks = dds.Tricks(card), result = -1;
-                                this.output[card].Add((byte)tricks);
+                                //this.output[card].Add((byte)tricks);
                                 Suit suit = (Suit)"CDHS".IndexOf(card[1]);
-                                if (this.N > 2 && this.played.Count == 0 &&
-                                    eastHand.Any(c => c.Suit == suit) &&
-                                    westHand.Any(c => c.Suit == suit))
+                                if (this.N > 2 && this.played.Count == 0 && eastHand.Any(c => c.Suit == suit) && westHand.Any(c => c.Suit == suit))
                                 {
                                     // make sure calculated tricks are correct
                                     DDS d1 = new DDS(dds.Clone());
                                     string reversed = N + " " + W + " " + S + " " + E;
                                     DDS d2 = new DDS(reversed, trump, this.leader);
-                                    d1.Execute(card + " x"); d2.Execute(card + " x");
+                                    d1.Execute(card + " x"); 
+                                    d2.Execute(card + " x");
                                     var nextMoves = this.NextMoves(opposite, card);
-                                    result = nextMoves.Max(next => Math.Min(
-                                        d1.Tricks(next), d2.Tricks(next)));
+                                    result = nextMoves.Max(next => Math.Min(d1.Tricks(next), d2.Tricks(next)));
                                     this.output[card].Add((byte)result);
-                                    d1.Delete(); d2.Delete();
+                                    d1.Delete(); 
+                                    d2.Delete();
                                 }
-                                else this.output[card].Add((byte)tricks);
+                                else 
+                                    this.output[card].Add((byte)tricks);
                             }
                             dds.Delete();
                         }
@@ -235,27 +258,6 @@ namespace BGADLL
                     }
                 })
                 { IsBackground = true }.Start();
-            }
-            // Asynchronously set the property
-            SetPropertyAsync();
-
-            // Continue execution without waiting for threads to complete
-
-            async Task SetPropertyAsync()
-            {
-                // Asynchronously wait for all threads to complete
-                await Task.Run(() =>
-                {
-                    for (int i = 0; i < this.threads; i++)
-                    {
-                        semaphore.WaitOne();
-                    }
-                });
-
-                // All threads are terminated
-
-                // Set the property after all threads have completed
-                this.evaluate = false;
             }
         }
 
@@ -270,14 +272,21 @@ namespace BGADLL
             int minHcp = details.MinHCP;
             int maxHcp = details.MaxHCP;
             int hcp = hand.Sum(c => c.HCP());
-            if (hcp < minHcp || hcp > maxHcp) return true;
+            if (hcp < minHcp || hcp > maxHcp) {
+                //Console.WriteLine("HCP={0} {1} {2} {3}", hcp, minHcp, maxHcp, hand);
+                return true; 
+            }
             for (int index = 0; index <= 3; index++)
             {
                 int min = details[(Suit)index, 0];
                 int max = details[(Suit)index, 1];
                 int count = hand.CardsInSuit(c => c.Suit == (Suit)index);
 
-                if (count < min || count > max) return true;
+                if (count < min || count > max)
+                {
+                    //Console.WriteLine("Discarding {0}", hand);
+                    return true;
+                }
             }
             return false;
         }
