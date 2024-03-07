@@ -57,7 +57,7 @@ namespace BGADLL
             this.threads = Math.Max(1, count - 2);
             this.free = this.threads;
             Console.WriteLine("PIMC Loaded");
-            //Console.WriteLine($"Threads: {this.threads}");
+            Console.WriteLine($"Threads: {this.threads}");
         }
 
         private void Clear(List<byte[]> list)
@@ -224,13 +224,21 @@ namespace BGADLL
                             string format = N + " " + E + " " + S + " " + W;
                 
                             DDS dds = new DDS(format, trump, this.leader);
-                            if (this.commands != "") dds.Execute(this.commands);
+                            try
+                            {
+                                if (this.commands != "") dds.Execute(this.commands);
+                            } catch (Exception ex)
+                            {
+                                Console.WriteLine("Input: {0} Command: {1} Message: {2}", format, commands, ex.Message);
+                                throw ex;
+                            }
                             Player opposite = this.leader.Next().Next();
                             foreach (string card in this.legalMoves)
                             {
                                 int tricks = dds.Tricks(card), result = -1;
-                                //this.output[card].Add((byte)tricks);
+                                this.output[card].Add((byte)tricks);
                                 Suit suit = (Suit)"CDHS".IndexOf(card[1]);
+                                // Now we switch the EW hands ad calculate the result again
                                 if (this.N > 2 && this.played.Count == 0 && eastHand.Any(c => c.Suit == suit) && westHand.Any(c => c.Suit == suit))
                                 {
                                     // make sure calculated tricks are correct
