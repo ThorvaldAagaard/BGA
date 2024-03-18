@@ -8,24 +8,29 @@ namespace BGADLL
 		public IEnumerable<byte[]> Generate(int n, int k)
 		{
 			byte[] result = new byte[k];
-			var stack = new Stack<byte>();
-			stack.Push(0);
-			while (stack.Count > 0)
+			if (k == 0)
+                yield return result;
+			else
 			{
-				int index = stack.Count - 1;
-				byte value = stack.Pop();
-				while (value < n)
-				{
-					result[index++] = ++value;
-					stack.Push(value);
-					if (index == k)
-					{
-						yield return result;
-						break;
-					}
-				}
-			}
-		}
+                var stack = new Stack<byte>();
+                stack.Push(0);
+                while (stack.Count > 0)
+                {
+                    int index = stack.Count - 1;
+                    byte value = stack.Pop();
+                    while (value < n)
+                    {
+                        result[index++] = ++value;
+                        stack.Push(value);
+                        if (index == k)
+                        {
+                            yield return result;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
 		public int Count(int n, int k)
         {

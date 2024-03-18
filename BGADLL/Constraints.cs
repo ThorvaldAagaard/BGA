@@ -3,7 +3,7 @@ using static BGADLL.Macros;
 
 namespace BGADLL
 {
-    public class Details : ICloneable
+    public class Constraints : ICloneable
     {
         public int MinClubs { get; set; }
         public int MaxClubs { get; set; }
@@ -16,7 +16,7 @@ namespace BGADLL
         public int MinHCP { get; set; }
         public int MaxHCP { get; set; }
 
-        public Details(int minClubs, int maxClubs, int minDiamonds,
+        public Constraints(int minClubs, int maxClubs, int minDiamonds,
             int maxDiamonds, int minHearts, int maxHearts,
             int minSpades, int maxSpades, int minHcp, int maxHcp)
         {
@@ -61,7 +61,7 @@ namespace BGADLL
 
         public object Clone() => this.MemberwiseClone();
 
-        public Details Copy() => (Details)this.Clone();
+        public Constraints Copy() => (Constraints)this.Clone();
 
         public override string ToString()
         {

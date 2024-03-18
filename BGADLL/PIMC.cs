@@ -33,8 +33,9 @@ namespace BGADLL
 
         // player hands
         private Hand played = null;
-        private Details eastDetails = null;
-        private Details westDetails = null;
+        private Constraints eastConsts = null;
+        private Constraints westConsts = null;
+        private int maxPlayout;
         private readonly Hand northHand = new Hand();
         private readonly Hand southHand = new Hand();
         private readonly Hand eastPlayed = new Hand();
@@ -112,17 +113,18 @@ namespace BGADLL
         }
 
 
-        public void SetupEvaluation(Hand[] our, Hand oppos, Hand played, Details[] details, Player leader)
+        public void SetupEvaluation(Hand[] our, Hand oppos, Hand played, Constraints[] consts, Player leader, int maxPlayout)
         {
             //Console.WriteLine("SetupEvaluation");
             this.played = played;
             this.commands = string.Join(" ",
                 played.Select(c => c.ToString()));
-            this.eastDetails = details[0];
-            this.westDetails = details[1];
+            this.eastConsts = consts[0];
+            this.westConsts = consts[1];
             this.northHand.AddRange(our[0]);
             this.southHand.AddRange(our[1]);
             this.opposCards.AddRange(oppos);
+            this.maxPlayout = maxPlayout;
             Player player = (Player)((int)leader);
             this.legalMoves = LegitMoves(leader);
 
@@ -194,6 +196,11 @@ namespace BGADLL
                         while (this.evaluate && !this.queue.IsEmpty)
                         {
                             Interlocked.Increment(ref this.playouts);
+                            if (this.maxPlayout > 0 && this.playouts > this.maxPlayout)
+                            {
+                                // End processing if max playouts is reached
+                                this.evaluate = false;
+                            }
 
                             // repeat if failed to dequeue item
                             if (!this.queue.TryDequeue(out int pos))
@@ -208,8 +215,8 @@ namespace BGADLL
                             var eastHand = this.opposCards.Except(westHand);
 
                             // exclude impossible hands
-                            if (this.Ignore(eastHand, this.eastDetails) ||
-                                this.Ignore(westHand, this.westDetails))
+                            if (this.Ignore(eastHand, this.eastConsts) ||
+                                this.Ignore(westHand, this.westConsts))
                             {
                                 Interlocked.Decrement(ref this.playouts);
                                 //Console.WriteLine("Hand ignored N:{0}", N + " " + eastHand + " " + S + " " + westHand);
@@ -239,7 +246,13 @@ namespace BGADLL
                                 this.output[card].Add((byte)tricks);
                                 Suit suit = (Suit)"CDHS".IndexOf(card[1]);
                                 // Now we switch the EW hands ad calculate the result again
-                                if (this.N > 2 && this.played.Count == 0 && eastHand.Any(c => c.Suit == suit) && westHand.Any(c => c.Suit == suit))
+                                // But only if both hands has a card in the suit played,
+                                // and constraints not are vialoted
+                                if (this.N > 2 && this.played.Count == 0 && 
+                                    eastHand.Any(c => c.Suit == suit) && 
+                                    westHand.Any(c => c.Suit == suit) &&
+                                    !this.Ignore(eastHand, this.westConsts) &&
+                                    !this.Ignore(westHand, this.eastConsts)                                    )
                                 {
                                     // make sure calculated tricks are correct
                                     DDS d1 = new DDS(dds.Clone());
@@ -264,6 +277,10 @@ namespace BGADLL
                         Interlocked.Increment(ref this.free);
                         semaphore.Release(); // Release the semaphore when the thread finishes
                     }
+                    if (this.queue.IsEmpty)
+                    {
+                        this.evaluate = false;
+                    }
                 })
                 { IsBackground = true }.Start();
             }
@@ -275,10 +292,10 @@ namespace BGADLL
             this.evaluate = false;
         }
 
-        private bool Ignore(Hand hand, Details details)
+        private bool Ignore(Hand hand, Constraints consts)
         {
-            int minHcp = details.MinHCP;
-            int maxHcp = details.MaxHCP;
+            int minHcp = consts.MinHCP;
+            int maxHcp = consts.MaxHCP;
             int hcp = hand.Sum(c => c.HCP());
             if (hcp < minHcp || hcp > maxHcp) {
                 //Console.WriteLine("HCP={0} {1} {2} {3}", hcp, minHcp, maxHcp, hand);
@@ -286,8 +303,8 @@ namespace BGADLL
             }
             for (int index = 0; index <= 3; index++)
             {
-                int min = details[(Suit)index, 0];
-                int max = details[(Suit)index, 1];
+                int min = consts[(Suit)index, 0];
+                int max = consts[(Suit)index, 1];
                 int count = hand.CardsInSuit(c => c.Suit == (Suit)index);
 
                 if (count < min || count > max)
