@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.SqlServer.Server;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static BGADLL.Macros;
 
 namespace BGADLL
 {
@@ -13,7 +15,7 @@ namespace BGADLL
     using Output = Dictionary<string, ConcurrentBag<byte>>;
     using Queue = ConcurrentQueue<int>;
 
-    public class PIMC
+    public class PIMCDef
     {
         private string commands = "";
         private bool evaluate = false;
@@ -33,13 +35,14 @@ namespace BGADLL
 
         // player hands
         private Hand played = null;
-        private Constraints eastConsts = null;
-        private Constraints westConsts = null;
+        private Constraints declarerConsts = null;
+        private Constraints partnerConsts = null;
+        private bool overdummy;
         private int maxPlayout;
-        private readonly Hand northHand = new Hand();
-        private readonly Hand southHand = new Hand();
-        private readonly Hand eastPlayed = new Hand();
-        private readonly Hand westPlayed = new Hand();
+        private readonly Hand dummyHand = new Hand();
+        private readonly Hand ourHand = new Hand();
+        private readonly Hand partnerPlayed = new Hand();
+        private readonly Hand declarerPlayed = new Hand();
         private readonly Hand remainingCards = new Hand();
 
         // getters
@@ -51,7 +54,7 @@ namespace BGADLL
         public string LegalMovesToString => string.Join(", ", LegalMoves);
         public Output Output => this.output;
 
-        public PIMC(int MaxThreads)
+        public PIMCDef(int MaxThreads)
         {
             // MaxThreads and logging can be added as parameters
             int count = Environment.ProcessorCount;
@@ -59,12 +62,12 @@ namespace BGADLL
             if (MaxThreads > 0)
                 this.threads = Math.Min(MaxThreads, this.threads);
             this.free = this.threads;
-            Console.WriteLine("PIMC Loaded");
+            Console.WriteLine("PIMCDef Loaded");
             Console.WriteLine($"Threads: {this.threads}");
         }
 
         // Parameterless constructor calling the existing constructor with -1 as the parameter
-        public PIMC() : this(-1)
+        public PIMCDef() : this(-1)
         {
         }
 
@@ -79,10 +82,10 @@ namespace BGADLL
         {
             this.commands = "";
             this.output.Clear();
-            this.northHand.Clear();
-            this.southHand.Clear();
-            this.eastPlayed.Clear();
-            this.westPlayed.Clear();
+            this.dummyHand.Clear();
+            this.ourHand.Clear();
+            this.partnerPlayed.Clear();
+            this.declarerPlayed.Clear();
             this.remainingCards.Clear();
             this.Clear(this.combinations);
             this.noOfCombinations = 0;
@@ -107,37 +110,48 @@ namespace BGADLL
             foreach (int i in array) this.queue.Enqueue(i);
         }
 
-        public IEnumerable<string> LegitMoves(Player player)
+        public IEnumerable<string> LegitMoves(Player player, bool overdummy)
         {
-            Hand cards = new List<Hand>() {
-                this.northHand, this.remainingCards,
-                this.southHand, this.remainingCards }[(int)player];
+            Hand cards;
+            if (overdummy)
+            {
+                cards = new List<Hand>() {
+                this.dummyHand,
+                this.ourHand, this.remainingCards, this.remainingCards }[(int)player];
+            }
+            else
+            {
+                cards = new List<Hand>() {
+                this.dummyHand, this.remainingCards,
+                this.remainingCards, this.ourHand}[(int)player];
+            }
             var output = cards.Select(c => c.ToString());
             if (this.played.Count == 0) return output;
             var moves = cards.Where(c => this.played[0].Suit
                 .Equals(c.Suit)).Select(c => c.ToString());
+            // If no legal moves, then all cards are allowed
             return moves.Count() > 0 ? moves : output;
         }
 
         public void validateInput()
         {
-            if ((northHand.Cards.Count() + southHand.Cards.Count() + remainingCards.Cards.Count() + played.Count) % 4 != 0)
+            if ((dummyHand.Cards.Count() + ourHand.Cards.Count() + remainingCards.Cards.Count() + played.Count) % 4 != 0)
             {
-                Console.WriteLine("Number of cards {0}", northHand.Cards.Count() + southHand.Cards.Count() + remainingCards.Cards.Count() + played.Count);
+                Console.WriteLine("Number of cards {0}", dummyHand.Cards.Count() + ourHand.Cards.Count() + remainingCards.Cards.Count() + played.Count);
                 throw new Exception("Wrong number of cards");
             }
-            if (eastConsts.MinHCP + westConsts.MinHCP > remainingCards.Sum(c => c.HCP()))
+            if (declarerConsts.MinHCP + partnerConsts.MinHCP > remainingCards.Sum(c => c.HCP()))
             {
-                throw new Exception(string.Format("Constraints not possible - Min HCP {0} {1}", eastConsts.MinHCP + westConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                throw new Exception(string.Format("Constraints not possible - Min HCP {0} {1}", declarerConsts.MinHCP + partnerConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
             }
-            if (eastConsts.MaxHCP + westConsts.MaxHCP < remainingCards.Sum(c => c.HCP()))
+            if (declarerConsts.MaxHCP + partnerConsts.MaxHCP < remainingCards.Sum(c => c.HCP()))
             {
-                throw new Exception(string.Format("Constraints not possible - Max HCP {0} {1}", eastConsts.MaxHCP + westConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                throw new Exception(string.Format("Constraints not possible - Max HCP {0} {1}", declarerConsts.MaxHCP + partnerConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
             }
             for (int index = 0; index <= 3; index++)
             {
-                int min = eastConsts[(Suit)index, 0] + westConsts[(Suit)index, 0];
-                int max = eastConsts[(Suit)index, 1] + westConsts[(Suit)index, 1];
+                int min = declarerConsts[(Suit)index, 0] + partnerConsts[(Suit)index, 0];
+                int max = declarerConsts[(Suit)index, 1] + partnerConsts[(Suit)index, 1];
                 int count = remainingCards.CardsInSuit(c => c.Suit == (Suit)index);
                 if (count < min || count > max)
                 {
@@ -147,25 +161,28 @@ namespace BGADLL
             }
         }
 
-            public void SetupEvaluation(Hand[] our, Hand oppos, Hand played, Constraints[] consts, Player nextToLead, int maxPlayout, bool autoplaysingleton)
+
+
+        public string SetupEvaluation(Hand[] our, Hand oppos, Hand played, Constraints[] consts, Player leader, int maxPlayout, bool autoplaysingleton, bool overdummy)
         {
             //Console.WriteLine("SetupEvaluation");
             this.played = played;
-            this.commands = string.Join(" ",
-                played.Select(c => c.ToString()));
-            this.eastConsts = consts[0];
-            this.westConsts = consts[1];
-            this.northHand.AddRange(our[0]);
-            this.southHand.AddRange(our[1]);
+            this.commands = string.Join(" ", played.Select(c => c.ToString()));
+            this.declarerConsts = consts[0];
+            this.partnerConsts = consts[1];
+            this.dummyHand.AddRange(our[0]);
+            this.ourHand.AddRange(our[1]);
             this.remainingCards.AddRange(oppos);
             validateInput();
+
+            this.overdummy = overdummy;
             this.maxPlayout = maxPlayout;
-            Player player = (Player)((int)nextToLead);
-            this.legalMoves = LegitMoves(nextToLead);
+            Player player = (Player)((int)leader);
+            this.legalMoves = LegitMoves(leader, overdummy);
 
             if (autoplaysingleton && legalMoves.Count() == 1)
             {
-                this.evaluate = false;
+                return legalMoves.First();
             }
 
             foreach (string card in this.legalMoves)
@@ -177,30 +194,45 @@ namespace BGADLL
             foreach (Card lead in leads)
             {
                 player = player.Prev();
-                switch (player)
+                if (overdummy)
                 {
-                    case Player.North: this.northHand.Add(lead); break;
-                    case Player.South: this.southHand.Add(lead); break;
-                    case Player.East: this.eastPlayed.Add(lead); break;
-                    case Player.West: this.westPlayed.Add(lead); break;
-                    default: break;
+                    switch (player)
+                    {
+                        case Player.North: this.dummyHand.Add(lead); break;
+                        case Player.South: this.declarerPlayed.Add(lead); break;
+                        case Player.East: this.ourHand.Add(lead); break;
+                        case Player.West: this.partnerPlayed.Add(lead); break;
+                        default: break;
+                    }
+                }
+                else
+                {
+                    switch (player)
+                    {
+                        case Player.North: this.dummyHand.Add(lead); break;
+                        case Player.South: this.declarerPlayed.Add(lead); break;
+                        case Player.East: this.partnerPlayed.Add(lead); break;
+                        case Player.West: this.ourHand.Add(lead); break;
+                        default: break;
+                    }
                 }
             }
 
             // They should not be different
-            int left = Math.Max(northHand.Count, southHand.Count);
-            this.K = left - this.westPlayed.Count;
+            int left = Math.Max(dummyHand.Count, ourHand.Count);
+            this.K = left - this.partnerPlayed.Count;
             this.N = remainingCards.Count;
             this.playouts = 0;
             this.leader = player;
 
             if (seed == 0)
             {
-                seed = CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
+                seed = CalculateSeed(this.dummyHand.ToString() + this.ourHand.ToString());
                 this.random = new Random(seed);
             }
 
             this.LoadCombinations();
+            return null;
         }
 
         static int CalculateSeed(string input)
@@ -222,8 +254,8 @@ namespace BGADLL
             //Console.WriteLine("BeginEvaluation");
             this.evaluate = true;
             this.free = this.threads;
-            string N = this.northHand.ToString();
-            string S = this.southHand.ToString();
+            string dummy = this.dummyHand.ToString();
+            string we = this.ourHand.ToString();
             Semaphore semaphore = new Semaphore(0, this.threads);
             for (int t = 0; t < this.threads; t++)
             {
@@ -239,7 +271,6 @@ namespace BGADLL
                                 // End processing if max playouts is reached
                                 this.evaluate = false; continue;
                             }
-
                             // repeat if failed to dequeue item
                             if (!this.queue.TryDequeue(out int pos))
                             {
@@ -250,12 +281,14 @@ namespace BGADLL
                             // recover hands before leads
                             var set = this.combinations[pos];
                             Interlocked.Increment(ref this.examined);
-                            Hand westHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
-                            Hand eastHand = this.remainingCards.Except(westHand);
+                            // First find partners hand
+                            Hand partnerHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
+                            // Then give the rest to declarer
+                            Hand declarerHand = this.remainingCards.Except(partnerHand);
 
                             // exclude impossible hands
-                            if (this.Ignore(eastHand, this.eastConsts) ||
-                                this.Ignore(westHand, this.westConsts))
+                            if (this.Ignore(declarerHand, this.declarerConsts) ||
+                                this.Ignore(partnerHand, this.partnerConsts))
                             {
                                 Interlocked.Decrement(ref this.playouts);
                                 //Console.WriteLine("Hand ignored N:{0}", N + " " + eastHand + " " + S + " " + westHand);
@@ -263,23 +296,30 @@ namespace BGADLL
                             }
 
                             // Constraints are updated after each played card, so is added after check, before DDS
-                            westHand = westHand.Concat(this.westPlayed);
-                            eastHand = eastHand.Concat(this.eastPlayed);
+                            partnerHand = partnerHand.Concat(this.partnerPlayed);
+                            declarerHand = declarerHand.Concat(this.declarerPlayed);
                             // DDS analysis
-                            string E = eastHand.ToString(), W = westHand.ToString();
-                            // All hands must have the same number of cards, or it will crash
-                            string format = N + " " + E + " " + S + " " + W;
-                            if (!(N.Length == E.Length && E.Length == S.Length && S.Length == W.Length))
+                            string declarer = declarerHand.ToString(), partner = partnerHand.ToString();
+                            string format = "";
+                            if (this.overdummy)
+                            {
+                                format = dummy + " " + we + " " + declarer + " " + partner;
+                            }
+                            else
+                            {
+                                format = dummy + " " + partner + " " + declarer + " " + we;
+                            }
+                            if (!(dummy.Length == we.Length && partner.Length == declarer.Length && declarer.Length == we.Length))
                             {
                                 Console.WriteLine("Input: {0} Command: {1} Message: {2}", format, commands, "Wrong number of cards");
-                                this.evaluate = false;
                                 throw new Exception("Wrong number of cards");
                             }
                             DDS dds = new DDS(format, trump, this.leader);
                             try
                             {
                                 if (this.commands != "") dds.Execute(this.commands);
-                            } catch (Exception ex)
+                            }
+                            catch (Exception ex)
                             {
                                 Console.WriteLine("Input: {0} Command: {1} Message: {2}", format, commands, ex.Message);
                                 throw ex;
@@ -297,49 +337,49 @@ namespace BGADLL
                                     throw new KeyNotFoundException($"Key '{card}' not found in output dictionary.", ex);
                                 }
                                 Suit suit = (Suit)"CDHS".IndexOf(card[1]);
-                                // Now we switch the EW hands and calculate the result again
-                                // But only if both hands has a card in the suit played,
-                                // and constraints not are vialoted
-                                if (this.N > 2 && this.played.Count == 0 && 
-                                    eastHand.Any(c => c.Suit == suit) && 
-                                    westHand.Any(c => c.Suit == suit) &&
-                                    !this.Ignore(eastHand, this.westConsts) &&
-                                    !this.Ignore(westHand, this.eastConsts)                                    )
+                                // Now we switch the partner and declarers hands ad calculate the result again
+                                // But only if dummy and partner has a card in the suit played,
+                                // and constraints not are violated
+                                if (this.N > 2 && this.played.Count == 0 &&
+                                    dummyHand.Any(c => c.Suit == suit) &&
+                                    partnerHand.Any(c => c.Suit == suit) &&
+                                    !this.Ignore(declarerHand, this.partnerConsts) &&
+                                    !this.Ignore(partnerHand, this.declarerConsts))
                                 {
-                                    // make sure calculated tricks are correct
-                                    DDS d1 = new DDS(dds.Clone());
-                                    string reversed = N + " " + W + " " + S + " " + E;
+                                    string reversed = "";
+                                    if (this.overdummy)
+                                    {
+                                        reversed = dummy + " " + we + " " + partner + " " + declarer;
+                                    }
+                                    else
+                                    {
+                                        reversed = dummy + " " + declarer + " " + partner + " " + we;
+                                    }
+
                                     DDS d2 = new DDS(reversed, trump, this.leader);
-                                    try
-                                    {
-                                        d1.Execute(card + " x");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine("Input: {0} Command: {1} x   Message: {2}", format, card, ex.Message);
-                                        throw ex;
-                                    }
                                     try
                                     {
                                         d2.Execute(card + " x");
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine("Input: {0} Command: {1} x  Message: {2}", reversed, card, ex.Message);
+                                        Console.WriteLine("Input: {0} Command: {1} x   Message: {2}", format, card, ex.Message);
                                         throw ex;
                                     }
-                                    var nextMoves = this.NextMoves(opposite, card);
-                                    result = nextMoves.Max(next => Math.Min(d1.Tricks(next), d2.Tricks(next)));
+                                    var nextMoves = this.NextMoves(declarer.Parse(), card);
+                                    result = nextMoves.Max(next => d2.Tricks(next));
                                     if (result > 13 || result < 0)
                                     {
-                                        Console.WriteLine("Input: {0} Command: {1} x   Result: {2}", format, card, result);
-                                        throw new Exception();
+                                        Console.WriteLine("Input: {0} Command: {1} x   Result: {2} nextMove {3}", format, card, result, nextMoves);
+                                        throw new Exception("-1 from DDS");
                                     }
-                                    this.output[card].Add((byte)result);
-                                    d1.Delete(); 
+                                    else
+                                    {
+                                        this.output[card].Add((byte)result);
+                                    }
                                     d2.Delete();
                                 }
-                                else 
+                                else
                                     this.output[card].Add((byte)tricks);
                             }
                             dds.Delete();
@@ -365,33 +405,33 @@ namespace BGADLL
             this.evaluate = false;
         }
 
-        private bool Ignore(Hand hand, Constraints constraints)
+        private bool Ignore(Hand hand, Constraints consts)
         {
-            int minHcp = constraints.MinHCP;
-            int maxHcp = constraints.MaxHCP;
+            int minHcp = consts.MinHCP;
+            int maxHcp = consts.MaxHCP;
             int hcp = hand.Sum(c => c.HCP());
-            if (hcp < minHcp || hcp > maxHcp) {
+            if (hcp < minHcp || hcp > maxHcp)
+            {
                 //Console.WriteLine("HCP={0} {1} {2} {3}", hcp, minHcp, maxHcp, hand);
-                return true; 
+                return true;
             }
             for (int index = 0; index <= 3; index++)
             {
-                int min = constraints[(Suit)index, 0];
-                int max = constraints[(Suit)index, 1];
+                int min = consts[(Suit)index, 0];
+                int max = consts[(Suit)index, 1];
                 int count = hand.CardsInSuit(c => c.Suit == (Suit)index);
 
                 if (count < min || count > max)
                 {
-                    //Console.WriteLine("Discarding {0} {1} {2} {3} {4}", hand, index, count, min, max);
+                    //Console.WriteLine("Discarding {0}", hand);
                     return true;
                 }
             }
             return false;
         }
 
-        private IEnumerable<string> NextMoves(Player opposite, string lead)
+        private IEnumerable<string> NextMoves(Hand hand, string lead)
         {
-            var hand = opposite == Player.North ? this.northHand : this.southHand;
             Suit suit = (Suit)"CDHS".IndexOf(lead[1]);
             var output = hand.Select(c => c.ToString());
             var moves = hand.Where(c => c.Suit.Equals(suit)).Select(c => c.ToString());

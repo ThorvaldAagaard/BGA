@@ -183,9 +183,9 @@ namespace BGADLL
             return Cards.Any(predicate);
         }
 
-        public List<Card> ToList()
+        public string ListAsString()
         {
-            return Cards.ToList();
+            return string.Concat(Cards.ToList());
         }
 
     }

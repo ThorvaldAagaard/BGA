@@ -102,10 +102,9 @@ namespace BGA
                 label.Font = this.stndFont;
 
                 // find the best move
-                if (bestScore.Equals(-1f) || probability > bestScore ||
-                    bestScore.Equals(1f) && probability.Equals(1f) &&
-                    tricks > bestTricks || bestScore.Equals(0f) &&
-                    probability.Equals(0f) && tricks > bestTricks)
+                if (bestScore.Equals(-1f) ||
+                    probability > bestScore ||
+                    bestScore == probability && tricks > bestTricks)
                 {
                     bestMove = label;
                     bestScore = probability;
@@ -395,7 +394,7 @@ namespace BGA
                 this.northHand, this.southHand },
                 this.opposCards, this.played,
                 new Constraints[2] { this.prevEastConst,
-                this.prevWestConst }, this.leader, -1);
+                this.prevWestConst }, this.leader, -1, false);
             int trump = this.CTrump.SelectedIndex;
             this.PIMC.BeginEvaluate((Trump)trump);
             this.elapsed = 0f;
