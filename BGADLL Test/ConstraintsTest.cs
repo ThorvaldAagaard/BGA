@@ -21,17 +21,12 @@ namespace BGA.Tests // Create a separate namespace for your tests
         [SetUp]
         public void Setup()
         {
-            // You can initialize objects or set up resources here
-            pimc = new PIMC(1);
-            pimcdef = new PIMCDef(1);
         }
 
         // Clean up any objects or resources after each test method
         [TearDown]
         public void TearDown()
         {
-            pimc = null;
-            pimcdef = null;
         }
 
         public List<byte[]> LoadCombinations(int n, int k)
@@ -83,6 +78,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Hand hand = "J..QJ97652.".Parse();
             Console.WriteLine(Ignore(hand, con));
         }
+
         [Test]
         public void TestConstraints()
         {
@@ -94,9 +90,45 @@ namespace BGA.Tests // Create a separate namespace for your tests
             int minTricks = 9;
             Hand remainingCards = "J962.J94.QJ97652.Q97".Parse();
 
-            // Constrant of minimum number of hearts greater than remaining cards
             Constraints east = new Constraints(0, 5, 1, 7, 0, 0, 2, 7, 0, 8);
             Constraints west = new Constraints(0, 3, 0, 6, 4, 7, 0, 4, 1, 10);
+            var combinations = LoadCombinations(7, 3);
+            for (int i = 0; i < combinations.Count; i++)
+            {
+                var set = combinations[i];
+                Hand westHand = new Hand(set.Select(index => remainingCards[index - 1]));
+                Hand eastHand = remainingCards.Except(westHand);
+                var westOK = !Ignore(westHand, west);
+                var eastOK = !Ignore(eastHand, east);
+                // exclude impossible hands
+                if (eastOK && westOK)
+                {
+                    Console.WriteLine("Hand found: {0}", eastHand + " " + westHand);
+                    continue;
+                }
+                else
+                {
+                    Console.WriteLine("Hand found: {0} {1} {2} {3} ", eastHand, eastOK, westHand, westOK);
+                }
+            }
+
+            // Constraints are updated after each played card, so is added after check, before DDS
+        }
+
+        [Test]
+        public void TestConstraintsHCP()
+        {
+            Hand north = "5..AT8.AJ843".Parse();
+            Hand south = "AT.T3.K43.5".Parse();
+            Hand played = new Hand();
+            played.Add(new Card("AH"));
+            played.Add(new Card("5H"));
+            int minTricks = 9;
+            Hand remainingCards = "J962.J94.QJ97652.Q97".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 5, 5, 7, 0, 0, 2, 7, 8, 18);
+            Constraints west = new Constraints(0, 3, 5, 6, 4, 7, 0, 4, 10, 12);
             var combinations = LoadCombinations(17, 8);
             for (int i = 0; i < combinations.Count; i++)
             {

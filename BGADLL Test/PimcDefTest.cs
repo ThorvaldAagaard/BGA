@@ -251,7 +251,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
                 dummy, myhand }, oppos, played, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
             Trump trump = Trump.Diamond;
             pimcdef.BeginEvaluate(trump);
-            Thread.Sleep(100000);
+            Thread.Sleep(1000);
             pimcdef.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimcdef.LegalMovesToString);
             Console.WriteLine("Combinations {0}", pimcdef.Combinations);

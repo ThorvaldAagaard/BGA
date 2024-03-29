@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -62,8 +63,9 @@ namespace BGADLL
             if (MaxThreads > 0)
                 this.threads = Math.Min(MaxThreads, this.threads);
             this.free = this.threads;
-            Console.WriteLine("PIMCDef Loaded");
-            Console.WriteLine($"Threads: {this.threads}");
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Version version = assembly.GetName().Version;
+            Console.WriteLine($"PIMCDef Loaded - version: {version} Threads: {this.threads}");
         }
 
         // Parameterless constructor calling the existing constructor with -1 as the parameter
@@ -142,21 +144,56 @@ namespace BGADLL
             }
             if (declarerConsts.MinHCP + partnerConsts.MinHCP > remainingCards.Sum(c => c.HCP()))
             {
-                throw new Exception(string.Format("Constraints not possible - Min HCP {0} {1}", declarerConsts.MinHCP + partnerConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                Console.WriteLine(string.Format("Constraints not possible - Min HCP {0} {1}", declarerConsts.MinHCP + partnerConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                declarerConsts.MinHCP = 0;
+                partnerConsts.MinHCP = 0;
             }
             if (declarerConsts.MaxHCP + partnerConsts.MaxHCP < remainingCards.Sum(c => c.HCP()))
             {
-                throw new Exception(string.Format("Constraints not possible - Max HCP {0} {1}", declarerConsts.MaxHCP + partnerConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                Console.WriteLine(string.Format("Constraints not possible - Max HCP {0} {1}", declarerConsts.MaxHCP + partnerConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                declarerConsts.MaxHCP = 37;
+                partnerConsts.MaxHCP = 37;
             }
+            int min = 0;
+            int max = 0;
             for (int index = 0; index <= 3; index++)
             {
-                int min = declarerConsts[(Suit)index, 0] + partnerConsts[(Suit)index, 0];
-                int max = declarerConsts[(Suit)index, 1] + partnerConsts[(Suit)index, 1];
-                int count = remainingCards.CardsInSuit(c => c.Suit == (Suit)index);
-                if (count < min || count > max)
+                min += declarerConsts[(Suit)index, 0] + partnerConsts[(Suit)index, 0];
+                max += declarerConsts[(Suit)index, 1] + partnerConsts[(Suit)index, 1];
+            }
+            if (min > remainingCards.Count || remainingCards.Count > max)
+            {
+                // Remove constraints
+                declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+                partnerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            }
+            else
+            {
+
+                for (int index = 0; index <= 3; index++)
                 {
-                    Console.WriteLine("{0} count={1} min={2} max={3}", (Suit)index, count, min, max);
-                    throw new Exception("Constraints not possible - Suit lengths");
+                    min = declarerConsts[(Suit)index, 0] + partnerConsts[(Suit)index, 0];
+                    max = declarerConsts[(Suit)index, 1] + partnerConsts[(Suit)index, 1];
+                    int count = remainingCards.CardsInSuit(c => c.Suit == (Suit)index);
+                    if (count == 0)
+                    {
+                        // No more cards in the suit, so we force contraints to zero.
+                        declarerConsts[(Suit)index, 0] = 0;
+                        partnerConsts[(Suit)index, 0] = 0;
+                        declarerConsts[(Suit)index, 1] = 0;
+                        partnerConsts[(Suit)index, 1] = 0;
+                    }
+                    else
+                    {
+                        if (count < min || count > max)
+                        {
+                            Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
+                            declarerConsts[(Suit)index, 0] = 0;
+                            partnerConsts[(Suit)index, 0] = 0;
+                            declarerConsts[(Suit)index, 1] = 37;
+                            partnerConsts[(Suit)index, 1] = 37;
+                        }
+                    }
                 }
             }
         }

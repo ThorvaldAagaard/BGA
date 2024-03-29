@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -59,8 +60,9 @@ namespace BGADLL
             if (MaxThreads > 0)
                 this.threads = Math.Min(MaxThreads, this.threads);
             this.free = this.threads;
-            Console.WriteLine("PIMC Loaded");
-            Console.WriteLine($"Threads: {this.threads}");
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Version version = assembly.GetName().Version;
+            Console.WriteLine($"PIMC Loaded - version: {version} Threads: {this.threads}");
         }
 
         // Parameterless constructor calling the existing constructor with -1 as the parameter
@@ -128,21 +130,54 @@ namespace BGADLL
             }
             if (eastConsts.MinHCP + westConsts.MinHCP > remainingCards.Sum(c => c.HCP()))
             {
-                throw new Exception(string.Format("Constraints not possible - Min HCP {0} {1}", eastConsts.MinHCP + westConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                Console.WriteLine(string.Format("Constraints not possible - Min HCP {0} {1}", eastConsts.MinHCP + westConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                eastConsts.MinHCP = 0;
+                westConsts.MinHCP = 0;
             }
             if (eastConsts.MaxHCP + westConsts.MaxHCP < remainingCards.Sum(c => c.HCP()))
             {
-                throw new Exception(string.Format("Constraints not possible - Max HCP {0} {1}", eastConsts.MaxHCP + westConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                Console.WriteLine(string.Format("Constraints not possible - Max HCP {0} {1}", eastConsts.MaxHCP + westConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                eastConsts.MaxHCP = 37;
+                westConsts.MaxHCP = 37;
             }
+            int min = 0;
+            int max = 0;
             for (int index = 0; index <= 3; index++)
             {
-                int min = eastConsts[(Suit)index, 0] + westConsts[(Suit)index, 0];
-                int max = eastConsts[(Suit)index, 1] + westConsts[(Suit)index, 1];
-                int count = remainingCards.CardsInSuit(c => c.Suit == (Suit)index);
-                if (count < min || count > max)
+                min += eastConsts[(Suit)index, 0] + westConsts[(Suit)index, 0];
+                max += eastConsts[(Suit)index, 1] + westConsts[(Suit)index, 1];
+            }
+            if (min > remainingCards.Count || remainingCards.Count > max)
+            {
+                // Remove constraints
+                eastConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+                westConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            } else
+            {
+                for (int index = 0; index <= 3; index++)
                 {
-                    Console.WriteLine("{0} count={1} min={2} max={3}", (Suit)index, count, min, max);
-                    throw new Exception("Constraints not possible - Suit lengths");
+                    min = eastConsts[(Suit)index, 0] + westConsts[(Suit)index, 0];
+                    max = eastConsts[(Suit)index, 1] + westConsts[(Suit)index, 1];
+                    int count = remainingCards.CardsInSuit(c => c.Suit == (Suit)index);
+                    if (count == 0)
+                    {
+                        // No more cards in the suit, so we force contraints to zero.
+                        eastConsts[(Suit)index, 0] = 0;
+                        westConsts[(Suit)index, 0] = 0;
+                        eastConsts[(Suit)index, 1] = 0;
+                        westConsts[(Suit)index, 1] = 0;
+                    }
+                    else
+                    {
+                        if (count < min || count > max)
+                        {
+                            Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
+                            eastConsts[(Suit)index, 0] = 0;
+                            westConsts[(Suit)index, 0] = 0;
+                            eastConsts[(Suit)index, 1] = 37;
+                            westConsts[(Suit)index, 1] = 37;
+                        }
+                    }
                 }
             }
         }

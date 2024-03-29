@@ -283,5 +283,51 @@ namespace BGA.Tests // Create a separate namespace for your tests
             }
             Console.WriteLine("Best move {0}, Tricks={1:F1}, Probability={2:F3}", bestMove, bestTricks, bestScore);
         }
+        [Test]
+        public void TestPlay6()
+        {
+            Hand north = "...A932".Parse();
+            Hand south = "...KQT8".Parse();
+            Hand played = new Hand();
+            int minTricks = 4;
+            Hand oppos = ".32.32.J765".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, played, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+            Trump trump = Trump.No;
+            pimc.BeginEvaluate(trump);
+            Thread.Sleep(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            float bestScore = -1f, bestTricks = -1f;
+            string bestMove = "";
+            foreach (string card in pimc.LegalMoves)
+            {
+                // calculate win probability
+                ConcurrentBag<byte> set = pimc.Output[card];
+                float count = (float)set.Count;
+                int makable = set.Count(t => t >= minTricks);
+                float probability = (float)makable / count;
+                if (float.IsNaN(probability)) probability = 0f;
+                double tricks = count > 0 ? set.Average(t => (int)t) : 0;
+                Console.WriteLine("Possible move {0}, Tricks={1:F1}, Probability={2:F3}", card, tricks, probability);
+                // find the best move
+                if (bestScore.Equals(-1f) ||
+                    probability > bestScore ||
+                    bestScore == probability && tricks > bestTricks)
+                {
+                    bestMove = card;
+                    bestScore = probability;
+                    bestTricks = (float)tricks;
+                }
+            }
+            Console.WriteLine("Best move {0}, Tricks={1:F1}, Probability={2:F3}", bestMove, bestTricks, bestScore);
+        }
     }
 }
