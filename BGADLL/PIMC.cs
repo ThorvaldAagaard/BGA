@@ -23,7 +23,6 @@ namespace BGADLL
         private readonly List<byte[]> combinations = new List<byte[]>();
         private int K = 0, N = 0, playouts = 0, free;
         private IEnumerable<string> legalMoves = null;
-        private readonly HashSet<string> check = null;
         private readonly Output output = new Output();
         private readonly Queue queue = new Queue();
         private readonly Utils utils = new Utils();
@@ -48,7 +47,7 @@ namespace BGADLL
         public int Examined => this.examined;
         public int Playouts => this.playouts;
         public bool Evaluating => this.evaluate || this.threads != this.free;
-        public IEnumerable<string> LegalMoves => this.legalMoves;
+        public string[] LegalMoves => this.legalMoves.ToArray();
         public string LegalMovesToString => string.Join(", ", LegalMoves);
         public Output Output => this.output;
 
@@ -310,6 +309,7 @@ namespace BGADLL
                                 this.evaluate = false;
                                 throw new Exception("Wrong number of cards");
                             }
+                            //Console.WriteLine("Input: {0} Command: {1}", format, commands);
                             DDS dds = new DDS(format, trump, this.leader);
                             try
                             {
@@ -326,6 +326,7 @@ namespace BGADLL
                                 try
                                 {
                                     this.output[card].Add((byte)tricks);
+                                    //Console.WriteLine("Card: {0} Tricks: {1}",card, tricks);
                                 }
                                 catch (KeyNotFoundException ex)
                                 {
@@ -335,7 +336,7 @@ namespace BGADLL
                                 // Now we switch the EW hands and calculate the result again
                                 // But only if both hands has a card in the suit played,
                                 // and constraints not are vialoted
-                                if (this.N > 2 && this.played.Count == 0 && 
+                                if (this.N > 6 && this.played.Count == 0 && 
                                     eastHand.Any(c => c.Suit == suit) && 
                                     westHand.Any(c => c.Suit == suit) &&
                                     !this.Ignore(eastHand, this.westConsts) &&
@@ -344,6 +345,7 @@ namespace BGADLL
                                     // make sure calculated tricks are correct
                                     DDS d1 = new DDS(dds.Clone());
                                     string reversed = N + " " + W + " " + S + " " + E;
+                                    //Console.WriteLine("reversed: {0} Command: {1}", format, commands);
                                     DDS d2 = new DDS(reversed, trump, this.leader);
                                     try
                                     {

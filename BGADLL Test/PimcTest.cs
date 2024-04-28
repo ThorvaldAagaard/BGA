@@ -329,5 +329,145 @@ namespace BGA.Tests // Create a separate namespace for your tests
             }
             Console.WriteLine("Best move {0}, Tricks={1:F1}, Probability={2:F3}", bestMove, bestTricks, bestScore);
         }
+        [Test]
+        public void TestPlay7()
+        {
+            Hand north = ".K.53.".Parse();
+            Hand south = "..K92.".Parse();
+            Hand played = new Hand();
+            int minTricks = 2;
+            Hand oppos = "..AQT84.T".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 5, 0, 7, 0, 0, 0, 0, 0, 8);
+            Constraints west = new Constraints(0, 3, 0, 6, 0, 0, 0, 0, 0, 10);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, played, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+            Trump trump = Trump.Heart;
+            pimc.BeginEvaluate(trump);
+            Thread.Sleep(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            float bestScore = -1f, bestTricks = -1f;
+            string bestMove = "";
+            foreach (string card in pimc.LegalMoves)
+            {
+                // calculate win probability
+                ConcurrentBag<byte> set = pimc.Output[card];
+                float count = (float)set.Count;
+                int makable = set.Count(t => t >= minTricks);
+                float probability = (float)makable / count;
+                if (float.IsNaN(probability)) probability = 0f;
+                double tricks = count > 0 ? set.Average(t => (int)t) : 0;
+                Console.WriteLine("Possible move {0}, Tricks={1:F2}, Probability={2:F3}", card, tricks, probability);
+                // find the best move
+                if (bestScore.Equals(-1f) ||
+                    probability > bestScore ||
+                    bestScore == probability && tricks > bestTricks)
+                {
+                    bestMove = card;
+                    bestScore = probability;
+                    bestTricks = (float)tricks;
+                }
+            }
+            Console.WriteLine("Best move {0}, Tricks={1:F2}, Probability={2:F3}", bestMove, bestTricks, bestScore);
+        }
+        [Test]
+        public void TestPlay8()
+        {
+            Hand north = "JT...Q3".Parse();
+            Hand south = "A9..2.J".Parse();
+            Hand played = new Hand();
+            int minTricks = 3;
+            Hand oppos = "Q652.3..K96".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 5, 0, 0, 0, 1, 0, 4, 0, 8);
+            Constraints west = new Constraints(0, 5, 0, 0, 0, 0, 0, 4, 0, 10);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, played, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+            Trump trump = Trump.No;
+            pimc.BeginEvaluate(trump);
+            Thread.Sleep(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            float bestScore = -1f, bestTricks = -1f;
+            string bestMove = "";
+            foreach (string card in pimc.LegalMoves)
+            {
+                // calculate win probability
+                ConcurrentBag<byte> set = pimc.Output[card];
+                float count = (float)set.Count;
+                int makable = set.Count(t => t >= minTricks);
+                float probability = (float)makable / count;
+                if (float.IsNaN(probability)) probability = 0f;
+                double tricks = count > 0 ? set.Average(t => (int)t) : 0;
+                Console.WriteLine("Possible move {0}, Tricks={1:F2}, Probability={2:F3}", card, tricks, probability);
+                // find the best move
+                if (bestScore.Equals(-1f) ||
+                    probability > bestScore ||
+                    bestScore == probability && tricks > bestTricks)
+                {
+                    bestMove = card;
+                    bestScore = probability;
+                    bestTricks = (float)tricks;
+                }
+            }
+            Console.WriteLine("Best move {0}, Tricks={1:F2}, Probability={2:F3}", bestMove, bestTricks, bestScore);
+        }
+        [Test]
+        public void TestPlay9()
+        {
+            Hand north = "KQ.8..".Parse();
+            Hand south = "76.J.Q.".Parse();
+            Hand played = new Hand();
+            int minTricks = 3;
+            played.Add(new Card("JC"));
+            played.Add(new Card("9C"));
+            Hand oppos = "J983..8.QT".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 2, 0, 0, 0, 0, 1, 4, 0, 5);
+            Constraints west = new Constraints(0, 2, 0, 13, 0, 0, 0, 3, 0, 5);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, played, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+            Trump trump = Trump.Heart;
+            pimc.BeginEvaluate(trump);
+            Thread.Sleep(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            float bestScore = -1f, bestTricks = -1f;
+            string bestMove = "";
+            foreach (string card in pimc.LegalMoves)
+            {
+                // calculate win probability
+                ConcurrentBag<byte> set = pimc.Output[card];
+                float count = (float)set.Count;
+                int makable = set.Count(t => t >= minTricks);
+                float probability = (float)makable / count;
+                if (float.IsNaN(probability)) probability = 0f;
+                double tricks = count > 0 ? set.Average(t => (int)t) : 0;
+                Console.WriteLine("Possible move {0}, Tricks={1:F2}, Probability={2:F3}", card, tricks, probability);
+                // find the best move
+                if (bestScore.Equals(-1f) ||
+                    probability > bestScore ||
+                    bestScore == probability && tricks > bestTricks)
+                {
+                    bestMove = card;
+                    bestScore = probability;
+                    bestTricks = (float)tricks;
+                }
+            }
+            Console.WriteLine("Best move {0}, Tricks={1:F2}, Probability={2:F3}", bestMove, bestTricks, bestScore);
+        }
     }
 }

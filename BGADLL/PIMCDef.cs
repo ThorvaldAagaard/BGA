@@ -25,7 +25,6 @@ namespace BGADLL
         private readonly List<byte[]> combinations = new List<byte[]>();
         private int K = 0, N = 0, playouts = 0, free;
         private IEnumerable<string> legalMoves = null;
-        private readonly HashSet<string> check = null;
         private readonly Output output = new Output();
         private readonly Queue queue = new Queue();
         private readonly Utils utils = new Utils();
@@ -51,7 +50,7 @@ namespace BGADLL
         public int Examined => this.examined;
         public int Playouts => this.playouts;
         public bool Evaluating => this.evaluate || this.threads != this.free;
-        public IEnumerable<string> LegalMoves => this.legalMoves;
+        public string[] LegalMoves => this.legalMoves.ToArray();
         public string LegalMovesToString => string.Join(", ", LegalMoves);
         public Output Output => this.output;
 
@@ -377,7 +376,7 @@ namespace BGADLL
                                 // Now we switch the partner and declarers hands ad calculate the result again
                                 // But only if dummy and partner has a card in the suit played,
                                 // and constraints not are violated
-                                if (this.N > 2 && this.played.Count == 0 &&
+                                if (this.N > 6 && this.played.Count == 0 &&
                                     dummyHand.Any(c => c.Suit == suit) &&
                                     partnerHand.Any(c => c.Suit == suit) &&
                                     !this.Ignore(declarerHand, this.partnerConsts) &&

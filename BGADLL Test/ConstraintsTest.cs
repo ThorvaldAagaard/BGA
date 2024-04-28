@@ -15,8 +15,6 @@ namespace BGA.Tests // Create a separate namespace for your tests
     public class ConstraintsTests
     {
 
-        private PIMC pimc;
-        private PIMCDef pimcdef;
         // Set up any necessary objects or resources before each test method
         [SetUp]
         public void Setup()
@@ -87,7 +85,6 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Hand played = new Hand();
             played.Add(new Card("AH"));
             played.Add(new Card("5H"));
-            int minTricks = 9;
             Hand remainingCards = "J962.J94.QJ97652.Q97".Parse();
 
             Constraints east = new Constraints(0, 5, 1, 7, 0, 0, 2, 7, 0, 8);
@@ -123,7 +120,6 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Hand played = new Hand();
             played.Add(new Card("AH"));
             played.Add(new Card("5H"));
-            int minTricks = 9;
             Hand remainingCards = "J962.J94.QJ97652.Q97".Parse();
 
             // Constrant of minimum number of hearts greater than remaining cards
