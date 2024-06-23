@@ -85,12 +85,13 @@ namespace BGA
             foreach (string card in legal)
             {
                 // calculate win probability
-                var set = this.PIMC.Output[card];
-                float count = (float)set.Count;
-                int makable = set.Count(t => t >= minTricks);
-                float probability = (float)makable / count;
+                var set = PIMC.Output.GetTricksWithWeights(card);
+                float totalWeight = set.Sum(entry => entry.weight);
+                float count = totalWeight;
+                float makableWeight = set.Where(entry => entry.tricks >= minTricks).Sum(entry => entry.weight);
+                float probability = count > 0 ? makableWeight / count : 0f;
                 if (float.IsNaN(probability)) probability = 0f;
-                double tricks = count > 0 ? set.Average(t => (int)t) : 0;
+                double tricks = PIMC.Output.CalculateWeightedTricks(card);
 
                 // draw probability in a label
                 bool drawProb = probability > 0f && probability < 1f;

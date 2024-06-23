@@ -37,13 +37,13 @@ namespace BGADLL
         // Method to add a range of cards to the hand
         public void AddRange(Hand hand)
         {
-            Cards.AddRange(hand.Cards);
+            this.AddRange(hand.Cards);
         }
 
         // Method to add a range of cards to the hand
         public void AddRange(List<Card> cards)
         {
-            Cards.AddRange(cards);
+            Cards = Cards.Concat(cards).Distinct().ToList();
         }
 
         // Method to remove a card from the hand
