@@ -82,9 +82,10 @@ namespace BGA.Tests // Create a separate namespace for your tests
         {
             Hand north = "5..AT8.AJ843".Parse();
             Hand south = "AT.T3.K43.5".Parse();
-            Hand played = new Hand();
-            played.Add(new Card("AH"));
-            played.Add(new Card("5H"));
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("AH"));
+            current_trick.Add(new Card("5H"));
             Hand remainingCards = "J962.J94.QJ97652.Q97".Parse();
 
             Constraints east = new Constraints(0, 5, 1, 7, 0, 0, 2, 7, 0, 8);
@@ -109,7 +110,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
                 }
             }
 
-            // Constraints are updated after each played card, so is added after check, before DDS
+            // Constraints are updated after each current_trick card, so is added after check, before DDS
         }
 
         [Test]
@@ -117,9 +118,10 @@ namespace BGA.Tests // Create a separate namespace for your tests
         {
             Hand north = "5..AT8.AJ843".Parse();
             Hand south = "AT.T3.K43.5".Parse();
-            Hand played = new Hand();
-            played.Add(new Card("AH"));
-            played.Add(new Card("5H"));
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("AH"));
+            current_trick.Add(new Card("5H"));
             Hand remainingCards = "J962.J94.QJ97652.Q97".Parse();
 
             // Constrant of minimum number of hearts greater than remaining cards
@@ -145,7 +147,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
                 }
             }
 
-            // Constraints are updated after each played card, so is added after check, before DDS
+            // Constraints are updated after each current_trick card, so is added after check, before DDS
         }
     }
 }

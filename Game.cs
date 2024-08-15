@@ -42,7 +42,8 @@ namespace BGA
             8.5F, FontStyle.Bold, GraphicsUnit.Point);
         private readonly Font stndFont = new Font("Tahoma",
             8.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private readonly Hand played = new Hand();
+        private readonly Play current_trick = new Play();
+        private readonly Play previous_tricks = new Play();
         private readonly Timer timer = new Timer();
         private Constraints prevEastConst;
         private Constraints prevWestConst;
@@ -79,18 +80,18 @@ namespace BGA
             var panel = this.leader == 0 ? this.SNorth : this.SSouth;
             IEnumerable<string> legal = this.PIMC.LegalMoves;
             var labels = panel.Controls.OfType<Label>();
-            float bestScore = -1f, bestTricks = -1f;
+            double bestScore = -1f, bestTricks = -1f;
             Label bestMove = null;
 
             foreach (string card in legal)
             {
                 // calculate win probability
                 var set = PIMC.Output.GetTricksWithWeights(card);
-                float totalWeight = set.Sum(entry => entry.weight);
-                float count = totalWeight;
-                float makableWeight = set.Where(entry => entry.tricks >= minTricks).Sum(entry => entry.weight);
-                float probability = count > 0 ? makableWeight / count : 0f;
-                if (float.IsNaN(probability)) probability = 0f;
+                double totalWeight = set.Sum(entry => entry.weight);
+                double count = totalWeight;
+                double makableWeight = set.Where(entry => entry.tricks >= minTricks).Sum(entry => entry.weight);
+                double probability = count > 0 ? makableWeight / count : 0f;
+                if (double.IsNaN(probability)) probability = 0f;
                 double tricks = PIMC.Output.CalculateWeightedTricks(card);
 
                 // draw probability in a label
@@ -109,7 +110,7 @@ namespace BGA
                 {
                     bestMove = label;
                     bestScore = probability;
-                    bestTricks = (float)tricks;
+                    bestTricks = (double)tricks;
                 }
             }
 
@@ -178,7 +179,7 @@ namespace BGA
             this.northHand.Clear();
             this.southHand.Clear();
             this.opposCards.Clear();
-            this.played.Clear();
+            this.current_trick.Clear();
             this.ClearPool();
         }
 
@@ -219,8 +220,8 @@ namespace BGA
                 this.northHand, this.opposCards,
                 this.southHand, this.opposCards }[(int)player];
             var output = cards.Select(c => c.ToString());
-            if (this.played.Count == 0) return output;
-            var moves = cards.Where(c => this.played[0].Suit
+            if (this.current_trick.Count == 0) return output;
+            var moves = cards.Where(c => this.current_trick[0].Suit
                 .Equals(c.Suit)).Select(c => c.ToString());
             return moves.Count() > 0 ? moves : output;
         }
@@ -249,7 +250,7 @@ namespace BGA
                 button.Name.Equals("B" + c))) return;
 
             // Update pool
-            if (this.played.Count == 0)
+            if (this.current_trick.Count == 0)
             {
                 this.winningPlayer = this.leader;
                 this.ClearPool();
@@ -306,24 +307,24 @@ namespace BGA
                 newDetails[card.Suit, 1] = Math.Max(0, prevMax - 1);
                 newDetails.MinHCP = Math.Max(0, newDetails.MinHCP - hcp);
                 newDetails.MaxHCP = Math.Max(0, newDetails.MaxHCP - hcp);
-                if (this.played.Count > 0 && card.Suit != this.played[0].Suit)
+                if (this.current_trick.Count > 0 && card.Suit != this.current_trick[0].Suit)
                 {
                     Constraints oldDetails = this.leader == Player.East
                         ? this.prevEastConst : this.prevWestConst;
-                    newDetails[this.played[0].Suit, 0] = 0;
-                    newDetails[this.played[0].Suit, 1] = 0;
-                    oldDetails[this.played[0].Suit, 0] = 0;
-                    oldDetails[this.played[0].Suit, 1] = 0;
+                    newDetails[this.current_trick[0].Suit, 0] = 0;
+                    newDetails[this.current_trick[0].Suit, 1] = 0;
+                    oldDetails[this.current_trick[0].Suit, 0] = 0;
+                    oldDetails[this.current_trick[0].Suit, 1] = 0;
                 }
             }
 
             // Update state
             this.allCards.Remove(button);
-            this.played.Add(card);
+            this.current_trick.Add(card);
 
             Card best = this.winningCard;
-            Card last = this.played.Last();
-            bool firstMove = this.played.Count == 1;
+            Card last = this.current_trick.Last();
+            bool firstMove = this.current_trick.Count == 1;
             if (firstMove) this.winningCard = last;
             button.Dispose();
 
@@ -333,7 +334,7 @@ namespace BGA
                 this.winningPlayer = this.leader;
                 this.winningCard = card;
             }
-            if (this.played.Count >= 4)
+            if (this.current_trick.Count >= 4)
             {
                 this.prevEastConst = this.eastConsts.Copy();
                 this.prevWestConst = this.westConsts.Copy();
@@ -343,7 +344,7 @@ namespace BGA
                 bool ns = (int)this.leader % 2 == 0;
                 if (ns) this.takenByNS++;
                 else this.takenByEW++;
-                this.played.Clear();
+                this.current_trick.Clear();
             }
             else
             {
@@ -393,7 +394,7 @@ namespace BGA
                 this.southHand.Count == 0) return;
             this.PIMC.SetupEvaluation(new Hand[2] {
                 this.northHand, this.southHand },
-                this.opposCards, this.played,
+                this.opposCards, this.current_trick, this.previous_tricks,
                 new Constraints[2] { this.prevEastConst,
                 this.prevWestConst }, this.leader, -1, false);
             int trump = this.CTrump.SelectedIndex;

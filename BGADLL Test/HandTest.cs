@@ -40,12 +40,14 @@ namespace BGA.Tests // Create a separate namespace for your tests
         [Test]
         public void TestCardList()
         {
-            Hand played = new Hand();
-            played.Add(new Card("4H"));
-            played.Add(new Card("4C"));
-            played.Add(new Card("9D"));
-
-            Assert.AreEqual("4H4C9D", played.ListAsString());
+            Play current_trick = new Play();
+            current_trick.Add(new Card("4H"));
+            current_trick.Add(new Card("4C"));
+            current_trick.Add(new Card("9D"));
+            Console.WriteLine(current_trick.ToString());
+            Console.WriteLine(current_trick.ListAsString());
+            Assert.AreEqual(".4.9.4", current_trick.ToString());
+            Assert.AreEqual("4H 4C 9D", current_trick.ListAsString());
         }
     }
 }

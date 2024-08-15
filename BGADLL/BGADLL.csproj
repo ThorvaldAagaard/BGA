@@ -47,7 +47,9 @@
     <Compile Include="DDS.cs" />
     <Compile Include="Constraints.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Deck.cs" />
     <Compile Include="Hand.cs" />
+    <Compile Include="Play.cs" />
     <Compile Include="Macros.cs" />
     <Compile Include="PIMCDef.cs" />
     <Compile Include="PIMC.cs" />

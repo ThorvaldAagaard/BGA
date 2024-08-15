@@ -34,14 +34,20 @@ namespace BGADLL
         private int seed = 0;
 
         // player hands
-        private Hand played = null;
+        private Play current_trick = null;
+        private Play previous_tricks = null;
         private Constraints eastConsts = null;
         private Constraints westConsts = null;
         private int maxPlayout;
+
+        public bool verbose { get; private set; }
+
         private readonly Hand northHand = new Hand();
         private readonly Hand southHand = new Hand();
         private readonly Hand eastHand = new Hand();
         private readonly Hand westHand = new Hand();
+        private readonly Hand eastHandShown = new Hand();
+        private readonly Hand westHandShown = new Hand();
         private readonly Hand remainingCards = new Hand();
 
         // getters
@@ -53,9 +59,9 @@ namespace BGADLL
         public string LegalMovesToString => string.Join(", ", LegalMoves);
         public CardTricks Output => this.output;
 
-        public PIMC(int MaxThreads)
+        public PIMC(int MaxThreads, bool verbose)
         {
-            // MaxThreads and logging can be added as parameters
+            this.verbose = verbose;
             int count = Environment.ProcessorCount;
             this.threads = Math.Max(1, count - 2);
             if (MaxThreads > 0)
@@ -66,8 +72,12 @@ namespace BGADLL
             Console.WriteLine($"PIMC Loaded - version: {version} Threads: {this.threads}");
         }
 
+        public PIMC(int MaxThreads) : this(MaxThreads, false)
+        {
+        }
+
         // Parameterless constructor calling the existing constructor with -1 as the parameter
-        public PIMC() : this(-1)
+        public PIMC() : this(-1, false)
         {
         }
 
@@ -115,8 +125,8 @@ namespace BGADLL
                 this.northHand, this.remainingCards,
                 this.southHand, this.remainingCards }[(int)player];
             var output = cards.Select(c => c.ToString());
-            if (this.played.Count == 0) return output;
-            var moves = cards.Where(c => this.played[0].Suit
+            if (this.current_trick.Count == 0) return output;
+            var moves = cards.Where(c => this.current_trick[0].Suit
                 .Equals(c.Suit)).Select(c => c.ToString());
             moves = moves.Count() > 0 ? moves : output;
             return moves.Reverse();
@@ -124,14 +134,14 @@ namespace BGADLL
 
         public void validateInput()
         {
-            Hand deck = new Hand();
+            Deck deck = new Deck();
             deck.AddRange(northHand);
             deck.AddRange(southHand);
             deck.AddRange(eastHand);
             deck.AddRange(westHand);
             deck.AddRange(remainingCards);
-            deck.AddRange(played);
-            if (deck.Count != northHand.Count + southHand.Count + eastHand.Count + westHand.Count + remainingCards.Count + played.Count)
+            deck.AddRange(current_trick.Cards);
+            if (deck.Count != northHand.Count + southHand.Count + eastHand.Count + westHand.Count + remainingCards.Count + current_trick.Count)
             {
                 Console.WriteLine("Deck {0}", deck);
                 throw new Exception("Duplicate cards");
@@ -198,21 +208,22 @@ namespace BGADLL
             }
         }
 
-    public void SetupEvaluation(Hand[] our, Hand oppos, Hand played, Constraints[] consts, Player nextToLead, int maxPlayout, bool autoplaysingleton)
+    public void SetupEvaluation(Hand[] our, Hand oppos, Play current_trick, Play previous_tricks, Constraints[] consts, Player nextToLead, int maxPlayout, bool autoplaysingleton)
         {
             //Console.WriteLine("SetupEvaluation");
-            this.played = played;
+            this.current_trick = current_trick;
+            this.previous_tricks = previous_tricks;
             this.commands = string.Join(" ",
-                played.Select(c => c.ToString()));
-            // Constraints are for remaining cards and does not include played cards
+                current_trick.Select(c => c.ToString()));
+            // Constraints are for remaining cards and does not include current_trick cards
             this.eastConsts = consts[0];
             this.westConsts = consts[1];
             this.northHand.AddRange(our[0]);
             this.southHand.AddRange(our[1]);
             if (our.Length > 2)
             {
-                this.eastHand.AddRange(our[2]);
-                this.westHand.AddRange(our[3]);
+                this.eastHandShown.AddRange(our[2]);
+                this.westHandShown.AddRange(our[3]);
             }
             this.remainingCards.AddRange(oppos);
             validateInput();
@@ -230,7 +241,7 @@ namespace BGADLL
                 this.output.Add(card);
             }
 
-            var leads = Enumerable.Reverse(played.Cards);
+            var leads = Enumerable.Reverse(current_trick.Cards);
             foreach (Card lead in leads)
             {
                 player = player.Prev();
@@ -320,9 +331,12 @@ namespace BGADLL
                     {
                         while (this.evaluate && !this.queue.IsEmpty)
                         {
-                            if (this.maxPlayout > 0 && this.playouts > this.maxPlayout)
+                            if (this.maxPlayout > 0 && this.playouts >= this.maxPlayout)
                             {
-                                Console.WriteLine("maxPlayout {0} {1}", this.playouts, this.maxPlayout);
+                                if (this.verbose)
+                                {
+                                    Console.WriteLine("maxPlayout {0} {1}", this.playouts, this.maxPlayout);
+                                }
                                 // End processing if max playouts is reached
                                 this.evaluate = false; continue;
                             }
@@ -334,6 +348,8 @@ namespace BGADLL
                                 Thread.Sleep(10); continue;
                             }
 
+                            // We could use default weight of 1, but as we include fusion strategy we have 2 calculations for each combination
+                            double weight = 0.5f;
                             Interlocked.Increment(ref this.playouts);
                             // recover hands before leads
                             var set = this.combinations[pos];
@@ -341,6 +357,37 @@ namespace BGADLL
                             Hand westHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
                             Hand eastHand = this.remainingCards.Except(westHand);
 
+                            // Constraints are updated after each current_trick card, so is added after check, before DDS
+                            westHand = westHand.Concat(this.westHand);
+                            eastHand = eastHand.Concat(this.eastHand);
+
+                            // DDS analysis
+                            string E = eastHand.ToString(), W = westHand.ToString();
+                            //Console.WriteLine("{0}", E + " " + W, commands);
+                            // All hands must have the same number of cards, or it will crash
+                            string format = N + " " + E + " " + S + " " + W;
+                            if (!(N.Length == E.Length && E.Length == S.Length && S.Length == W.Length))
+                            {
+                                Interlocked.Decrement(ref this.playouts);
+                                //Console.WriteLine("Hand ignored N:{0}", N + " " + eastHand + " " + S + " " + westHand);
+                                continue;
+                            }
+
+                            var sampleEast = new Hand();
+                            sampleEast.AddRange(this.eastHandShown);
+                            sampleEast.AddRange(this.eastHand);
+                            var sampleWest = new Hand();
+                            sampleWest.AddRange(this.westHandShown);
+                            sampleWest.AddRange(this.westHand);
+                            double weight1 = sampleEast.getOdds();
+                            double weight2 = sampleWest.getOdds();
+                            weight = weight1 * weight2;
+
+                            // Based on the remaining cards we should add a weight to this sample
+                            //if (westHand.Cards.Contains(new Card("5C")))
+                            //{
+                            //    weight = 0.25f;
+                            //}
                             // exclude impossible hands
                             if (this.Ignore(eastHand, this.eastConsts) ||
                                 this.Ignore(westHand, this.westConsts))
@@ -350,28 +397,10 @@ namespace BGADLL
                                 continue;
                             }
 
-                            // Constraints are updated after each played card, so is added after check, before DDS
-                            westHand = westHand.Concat(this.westHand);
-                            eastHand = eastHand.Concat(this.eastHand);
-
-                            //Console.WriteLine("Hand N:{0}", N + " " + eastHand + " " + S + " " + westHand);
-
-                            // DDS analysis
-                            string E = eastHand.ToString(), W = westHand.ToString();
-                            // All hands must have the same number of cards, or it will crash
-                            string format = N + " " + E + " " + S + " " + W;
-                            if (!(N.Length == E.Length && E.Length == S.Length && S.Length == W.Length))
-                            {
-                                //Console.WriteLine("Input: {0} Command: {1} Message: {2}", format, commands, "Wrong number of cards");
-                                //this.evaluate = false;
-                                //throw new Exception("Wrong number of cards");
-                                Interlocked.Decrement(ref this.playouts);
-                                //Console.WriteLine("Hand ignored N:{0}", N + " " + eastHand + " " + S + " " + westHand);
-                                continue;
+                            if (this.verbose) {
+                                Console.WriteLine("Hand N:{0} {1}", N + " " + eastHand + " " + S + " " + westHand, weight);
+                                //Console.WriteLine("Input: {0} Command: {1}", format, commands);
                             }
-                            // We could use default weight of 1, but as we include fusion strategy we have 2 calculations for each combination
-                            float weight = 0.5f;
-                            //Console.WriteLine("Input: {0} Command: {1}", format, commands);
                             DDS dds = new DDS(format, trump, this.leader);
                             try
                             {
@@ -397,10 +426,10 @@ namespace BGADLL
                                 }
                                 Suit suit = (Suit)"CDHS".IndexOf(card[1]);
                                 // Now we switch the EW hands and calculate the result again
-                                // But only if both hands has a card in the suit played,
+                                // But only if both hands has a card in the suit current_trick,
                                 // and constraints not are vialoted
                                 // This is the mixed strategy
-                                if (this.remainingCards.Count > 52 && this.played.Count == 0 && 
+                                if (this.remainingCards.Count > 2 && this.current_trick.Count == 0 && 
                                     eastHand.Any(c => c.Suit == suit) && 
                                     westHand.Any(c => c.Suit == suit) &&
                                     !this.Ignore(eastHand, this.westConsts) &&
@@ -483,7 +512,10 @@ namespace BGADLL
 
         public void EndEvaluate()
         {
-            //Console.WriteLine("EndEvaluation");
+            if (this.verbose)
+            {
+                Console.WriteLine("EndEvaluation");
+            }
             this.evaluate = false;
         }
 

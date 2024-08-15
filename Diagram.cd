@@ -81,7 +81,7 @@
         <Position X="-1.687" Y="0.287" Height="0.182" Width="0.817" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="played" Type="BGA.Card" FixedToPoint="true">
+    <AssociationLine Name="current_trick" Type="BGA.Card" FixedToPoint="true">
       <Path>
         <Point X="6.5" Y="2.625" />
         <Point X="6.323" Y="2.625" Type="JumpStart" />
@@ -157,7 +157,7 @@
     </ShowAsAssociation>
     <ShowAsCollectionAssociation>
       <Field Name="deck" />
-      <Field Name="played" />
+      <Field Name="current_trick" />
       <Field Name="northHand" />
       <Field Name="southHand" />
       <Field Name="opposCards" />
@@ -201,7 +201,7 @@
         <Position X="0.497" Y="0.01" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="played" Type="BGA.Card">
+    <AssociationLine Name="current_trick" Type="BGA.Card">
       <MemberNameLabel ManuallyPlaced="true">
         <Position X="-0.497" Y="0.524" />
       </MemberNameLabel>
@@ -238,7 +238,7 @@
         <Position X="0.613" Y="0.026" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="eastPlayed" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="eastcurrent_trick" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="14.5" Y="1" />
         <Point X="14.5" Y="0.189" />
@@ -254,7 +254,7 @@
         <Position X="0.603" Y="0.036" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="westPlayed" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="westcurrent_trick" Type="BGA.Card" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="13.938" Y="1" />
         <Point X="13.938" Y="0.457" />
@@ -292,11 +292,11 @@
       <Field Name="utils" />
     </ShowAsAssociation>
     <ShowAsCollectionAssociation>
-      <Field Name="played" />
+      <Field Name="current_trick" />
       <Field Name="northHand" />
       <Field Name="southHand" />
-      <Field Name="eastPlayed" />
-      <Field Name="westPlayed" />
+      <Field Name="eastcurrent_trick" />
+      <Field Name="westcurrent_trick" />
       <Field Name="opposCards" />
     </ShowAsCollectionAssociation>
   </Class>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using Output = System.Collections.Generic.Dictionary<string, System.Collections.Concurrent.ConcurrentBag<(byte tricks, float weight)>>;
+using Output = System.Collections.Generic.Dictionary<string, System.Collections.Concurrent.ConcurrentBag<(byte tricks, double weight)>>;
 using System.Linq;
 
 
@@ -25,7 +25,7 @@ namespace BGADLL
         {
             if (!output.ContainsKey(card))
             {
-                output[card] = new ConcurrentBag<(byte tricks, float weight)>();
+                output[card] = new ConcurrentBag<(byte tricks, double weight)>();
             }
         }
 
@@ -35,24 +35,24 @@ namespace BGADLL
             get { return output.Count; }
         }
 
-        public void AddTricksWithWeight(string card, byte tricks, float weight)
+        public void AddTricksWithWeight(string card, byte tricks, double weight)
         {
             if (!output.ContainsKey(card))
             {
-                output[card] = new ConcurrentBag<(byte tricks, float weight)>();
+                output[card] = new ConcurrentBag<(byte tricks, double weight)>();
             }
             output[card].Add((tricks, weight));
         }
 
-        public float CalculateWeightedTricks(string card)
+        public double CalculateWeightedTricks(string card)
         {
             if (!output.ContainsKey(card))
             {
                 return 0;
             }
 
-            float totalWeightedTricks = 0;
-            float totalWeight = 0;
+            double totalWeightedTricks = 0;
+            double totalWeight = 0;
 
             foreach (var entry in output[card])
             {
@@ -63,7 +63,7 @@ namespace BGADLL
             return totalWeight > 0 ? totalWeightedTricks / totalWeight : 0;
         }
 
-        public IEnumerable<(byte tricks, float weight)> GetTricksWithWeights(string card)
+        public IEnumerable<(byte tricks, double weight)> GetTricksWithWeights(string card)
         {
             //Console.WriteLine("GetTricksWithWeights {0}", card);
             if (output.ContainsKey(card))
@@ -71,7 +71,7 @@ namespace BGADLL
                 return output[card];
             }
 
-            return Enumerable.Empty<(byte tricks, float weight)>();
+            return Enumerable.Empty<(byte tricks, double weight)>();
         }
     }
 }
