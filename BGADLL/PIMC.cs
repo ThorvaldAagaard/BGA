@@ -32,6 +32,7 @@ namespace BGADLL
         private int noOfCombinations = 0;
         private int examined = 0;
         private int seed = 0;
+        private int activeThreads = 0;  // Counter to track active threads
 
         // player hands
         private Play current_trick = null;
@@ -69,7 +70,7 @@ namespace BGADLL
             this.free = this.threads;
             Assembly assembly = Assembly.GetExecutingAssembly();
             Version version = assembly.GetName().Version;
-            Console.WriteLine($"PIMC Loaded - version: {version} Threads: {this.threads}");
+            Console.WriteLine($"PIMC Loaded - version: {version} Threads: {this.threads}  Verbose: {this.verbose}");
         }
 
         public PIMC(int MaxThreads) : this(MaxThreads, false)
@@ -129,7 +130,7 @@ namespace BGADLL
             var moves = cards.Where(c => this.current_trick[0].Suit
                 .Equals(c.Suit)).Select(c => c.ToString());
             moves = moves.Count() > 0 ? moves : output;
-            return moves.Reverse();
+            return moves;
         }
 
         public void validateInput()
@@ -216,8 +217,18 @@ namespace BGADLL
             this.commands = string.Join(" ",
                 current_trick.Select(c => c.ToString()));
             // Constraints are for remaining cards and does not include current_trick cards
-            this.eastConsts = consts[0];
-            this.westConsts = consts[1];
+            // Our modification should not be on the passed object
+            // Create a new array for the copied Constraints
+            Constraints[] copiedConstraints = new Constraints[consts.Length];
+
+            // Deep copy each Constraints object using the Clone method
+            for (int i = 0; i < consts.Length; i++)
+            {
+                copiedConstraints[i] = (Constraints)consts[i].Clone();
+            }
+
+            this.eastConsts = copiedConstraints[0];
+            this.westConsts = copiedConstraints[1];
             this.northHand.AddRange(our[0]);
             this.southHand.AddRange(our[1]);
             if (our.Length > 2)
@@ -324,6 +335,7 @@ namespace BGADLL
             }
             for (int t = 0; t < this.threads; t++)
             {
+                Interlocked.Increment(ref activeThreads);  // Increment when starting a new thread
                 new Thread(start: () =>
                 {
                     Interlocked.Decrement(ref this.free);
@@ -375,10 +387,10 @@ namespace BGADLL
 
                             var sampleEast = new Hand();
                             sampleEast.AddRange(this.eastHandShown);
-                            sampleEast.AddRange(this.eastHand);
+                            sampleEast.AddRange(eastHand);
                             var sampleWest = new Hand();
                             sampleWest.AddRange(this.westHandShown);
-                            sampleWest.AddRange(this.westHand);
+                            sampleWest.AddRange(westHand);
                             double weight1 = sampleEast.getOdds();
                             double weight2 = sampleWest.getOdds();
                             weight = weight1 * weight2;
@@ -478,11 +490,13 @@ namespace BGADLL
 
                             }
                             dds.Delete();
+                            //Console.WriteLine("---------------------------------");
                         }
                     }
                     finally
                     {
                         Interlocked.Increment(ref this.free);
+                        Interlocked.Decrement(ref activeThreads);  // Decrement when the thread finishes
                         semaphore.Release(); // Release the semaphore when the thread finishes
                     }
                     if (this.queue.IsEmpty)
@@ -507,6 +521,12 @@ namespace BGADLL
             }
             // Max execution time exeeded
             this.evaluate = false;
+            // Now wait for all active threads to finish
+            while (Interlocked.CompareExchange(ref activeThreads, 0, 0) > 0)
+            {
+                Thread.Sleep(10);  // Sleep and wait for active threads to complete
+            }
+
             return;
         }
 

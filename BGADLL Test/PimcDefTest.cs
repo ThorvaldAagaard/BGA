@@ -44,10 +44,10 @@ namespace BGA.Tests // Create a separate namespace for your tests
                 float probability = (float)beatable / count;
                 if (float.IsNaN(probability)) probability = 0f;
                 double tricks = count > 0 ? set.Average(t => (byte)t) : 0;
-                Console.WriteLine("Possible move {0}, Tricks={1:F2}, Probability={2:F3}", card, tricks, probability);
+                Console.WriteLine("Possible move {0}, Tricks={1:F2}, Probability={2:F3}, Count {4}", card, tricks, probability, set.Count());
                 // find the best move
                 if (bestScore.Equals(-1f) ||
-                    probability > bestScore ||
+                probability > bestScore ||
                     bestScore == probability && tricks > bestTricks)
                 {
                     bestMove = card;

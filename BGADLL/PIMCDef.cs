@@ -32,6 +32,7 @@ namespace BGADLL
         private int noOfCombinations = 0;
         private int examined = 0;
         private int seed = 0;
+        private int activeThreads = 0;  // Counter to track active threads
 
         // player hands
         private Play current_trick = null;
@@ -70,7 +71,7 @@ namespace BGADLL
             this.free = this.threads;
             Assembly assembly = Assembly.GetExecutingAssembly();
             Version version = assembly.GetName().Version;
-            Console.WriteLine($"PIMCDef Loaded - version: {version} Threads: {this.threads}");
+            Console.WriteLine($"PIMCDef Loaded - version: {version} Threads: {this.threads} Verbose: {this.verbose}");
         }
 
         public PIMCDef(int MaxThreads) : this(MaxThreads, false)
@@ -257,8 +258,18 @@ namespace BGADLL
             this.current_trick = current_trick;
             this.previous_tricks = previous_tricks;
             this.commands = string.Join(" ", current_trick.Select(c => c.ToString()));
-            this.declarerConsts = consts[0];
-            this.partnerConsts = consts[1];
+            // Our modification should not be on the passed object
+            // Create a new array for the copied Constraints
+            Constraints[] copiedConstraints = new Constraints[consts.Length];
+
+            // Deep copy each Constraints object using the Clone method
+            for (int i = 0; i < consts.Length; i++)
+            {
+                copiedConstraints[i] = (Constraints)consts[i].Clone();
+            }
+
+            this.declarerConsts = copiedConstraints[0];
+            this.partnerConsts = copiedConstraints[1];
             this.dummyHand.AddRange(our[0]);
             this.ourHand.AddRange(our[1]);
             if (our.Length > 2)
@@ -378,6 +389,7 @@ namespace BGADLL
             Semaphore semaphore = new Semaphore(0, this.threads);
             for (int t = 0; t < this.threads; t++)
             {
+                Interlocked.Increment(ref activeThreads);  // Increment when starting a new thread
                 new Thread(start: () =>
                 {
                     Interlocked.Decrement(ref this.free);
@@ -387,6 +399,11 @@ namespace BGADLL
                         {
                             if (this.maxPlayout > 0 && this.playouts > this.maxPlayout)
                             {
+                                if (this.verbose)
+                                {
+                                    Console.WriteLine("maxPlayout {0} {1}", this.playouts, this.maxPlayout);
+                                }
+                                // End processing if max playouts is reached
                                 // End processing if max playouts is reached
                                 this.evaluate = false; continue;
                             }
@@ -458,6 +475,10 @@ namespace BGADLL
                                 throw new Exception("Wrong number of cards");
                             }
                             //Console.WriteLine("Input: {0} Command: {1}", format, commands);
+                            if (this.verbose)
+                            {
+                                //Console.WriteLine("Input: {0} Command: {1}", format, commands);
+                            }
                             DDS dds = new DDS(format, trump, this.leader);
                             try
                             {
@@ -491,6 +512,7 @@ namespace BGADLL
                     finally
                     {
                         Interlocked.Increment(ref this.free);
+                        Interlocked.Decrement(ref activeThreads);  // Decrement when the thread finishes
                         semaphore.Release(); // Release the semaphore when the thread finishes
                     }
                     if (this.queue.IsEmpty)
@@ -516,12 +538,21 @@ namespace BGADLL
             }
             // Max execution time exeeded
             this.evaluate = false;
+            // Now wait for all active threads to finish
+            while (Interlocked.CompareExchange(ref activeThreads, 0, 0) > 0)
+            {
+                Thread.Sleep(10);  // Sleep and wait for active threads to complete
+            }
+
             return;
         }
 
         public void EndEvaluate()
         {
-            //Console.WriteLine("EndEvaluation");
+            if (this.verbose)
+            {
+                Console.WriteLine("EndEvaluation");
+            }
             this.evaluate = false;
         }
 
