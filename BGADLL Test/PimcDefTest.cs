@@ -33,33 +33,36 @@ namespace BGA.Tests // Create a separate namespace for your tests
 
         private void displayResults(int minTricks)
         {
-            float bestScore = -1f, bestTricks = -1f;
+            double bestScore = -1f, bestTricks = -1f;
             string bestMove = "";
             foreach (string card in pimcdef.LegalMoves)
             {
                 // calculate win probability
-                ConcurrentBag<byte> set = pimcdef.Output[card];
-                float count = (float)set.Count;
-                int beatable = set.Count(t => t >= minTricks);
-                float probability = (float)beatable / count;
-                if (float.IsNaN(probability)) probability = 0f;
-                double tricks = count > 0 ? set.Average(t => (byte)t) : 0;
-                Console.WriteLine("Possible move {0}, Tricks={1:F2}, Probability={2:F3}, Count {4}", card, tricks, probability, set.Count());
+                pimcdef.Output.SortResults();
+                IEnumerable<(byte tricks, double weight, int combinationId)> set = pimcdef.Output.GetTricksWithWeights(card);
+                double totalWeight = set.Sum(entry => entry.weight);
+                double makableWeight = set.Where(entry => entry.tricks >= minTricks).Sum(entry => entry.weight);
+                double probability = totalWeight > 0 ? (float)makableWeight / totalWeight : 0f;
+                if (double.IsNaN(probability)) probability = 0f;
+                double weightedTricks = pimcdef.Output.CalculateWeightedTricks(card);
+
+                Console.WriteLine("Possible move {0}, Tricks={1:F2}, ProbabilityMaking={2:F4}, Count/Weight {3:F3}, Count {4}", card, weightedTricks, probability, totalWeight, set.Count());
+
                 // find the best move
                 if (bestScore.Equals(-1f) ||
-                probability > bestScore ||
-                    bestScore == probability && tricks > bestTricks)
+                    probability > bestScore ||
+                    bestScore == probability && weightedTricks > bestTricks)
                 {
                     bestMove = card;
                     bestScore = probability;
-                    bestTricks = (float)tricks;
+                    bestTricks = (float)weightedTricks;
                 }
             }
             Console.WriteLine("Best move {0}, Tricks={1:F2}, Probability={2:F4}", bestMove, bestTricks, bestScore);
         }
 
         [Test]
-        public void TestDefence3()
+        public void TestDefence3A()
         {
             Hand dummy = "432..7632.83".Parse();
             Hand myhand = "Q976.9875.T9.".Parse();
@@ -75,7 +78,35 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 0, 0, 7, 0, 6, 4, 6, 0, 30);
             Constraints partnerConsts = new Constraints(4, 7, 0, 6, 0, 6, 0, 1, 0, 5);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, false, overdummy);
+            Trump trump = Trump.Spade;
+            pimcdef.Evaluate(trump);
+            pimcdef.AwaitEvaluation(1000);
+            pimcdef.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimcdef.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimcdef.Combinations);
+            Console.WriteLine("Examined {0}", pimcdef.Examined);
+            Console.WriteLine("Playouts {0}", pimcdef.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestDefence3B()
+        {
+            Hand dummy = "432..7632.83".Parse();
+            Hand myhand = "Q976.9875.T9.".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("JC"));
+            current_trick.Add(new Card("6C"));
+            bool overdummy = true; // We are east then
+            int minTricks = 1;
+            Hand oppos = "AKJT.KQJT6.AKQJ85.T752".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints declarerConsts = new Constraints(0, 0, 0, 7, 0, 6, 4, 6, 0, 30);
+            Constraints partnerConsts = new Constraints(4, 7, 0, 6, 0, 6, 0, 1, 0, 5);
+            pimcdef.SetupEvaluation(new Hand[2] {
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, false, overdummy);
             Trump trump = Trump.Spade;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(1000);
@@ -326,6 +357,36 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints partnerConsts = new Constraints(0, 1, 0, 14, 3, 5, 0, 0, 1, 7);
             pimcdef.SetupEvaluation(new Hand[4] {
                 dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
+            Trump trump = Trump.Club;
+            pimcdef.BeginEvaluate(trump);
+            pimcdef.AwaitEvaluation(10000);
+            pimcdef.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimcdef.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimcdef.Combinations);
+            Console.WriteLine("Examined {0}", pimcdef.Examined);
+            Console.WriteLine("Playouts {0}", pimcdef.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestDefence12()
+        {
+            Hand dummy = "J.Q8..".Parse();
+            Hand myhand = ".J6..A8".Parse();
+            Hand declarer = "62.9.KT5.Q52".Parse();
+            Hand partner = "3.53.8743.T9".Parse();
+            Play current_trick = new Play();
+            current_trick.Add(new Card("7H"));
+
+            Play previous_tricks = new Play();
+            bool overdummy = true; 
+            int minTricks = 4;
+            Hand oppos = "AQT85.K.9.J".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            Constraints partnerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            pimcdef.SetupEvaluation(new Hand[4] {
+                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, true, overdummy);
             Trump trump = Trump.Club;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(10000);

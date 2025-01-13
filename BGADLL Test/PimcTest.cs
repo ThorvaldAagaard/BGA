@@ -1,12 +1,9 @@
-using NUnit.Framework;
 using BGADLL;
-using static BGADLL.Macros;
-using System.Threading;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
-using System.Drawing.Printing; // Replace with the namespace of your DLL
+using static BGADLL.Macros;
 
 namespace BGA.Tests // Create a separate namespace for your tests
 {
@@ -21,7 +18,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
         public void Setup()
         {
             // You can initialize objects or set up resources here
-            pimc = new PIMC(1,false);
+            pimc = new PIMC(12,true);
         }
 
         // Clean up any objects or resources after each test method
@@ -38,14 +35,15 @@ namespace BGA.Tests // Create a separate namespace for your tests
             foreach (string card in pimc.LegalMoves)
             {
                 // calculate win probability
-                IEnumerable<(byte tricks, double weight)> set = pimc.Output.GetTricksWithWeights(card);
+                pimc.Output.SortResults();
+                IEnumerable<(byte tricks, double weight, int combinationId)> set = pimc.Output.GetTricksWithWeights(card);
                 double totalWeight = set.Sum(entry => entry.weight);
                 double makableWeight = set.Where(entry => entry.tricks >= minTricks).Sum(entry => entry.weight);
                 double probability = totalWeight > 0 ? (float)makableWeight / totalWeight : 0f;
                 if (double.IsNaN(probability)) probability = 0f;
                 double weightedTricks = pimc.Output.CalculateWeightedTricks(card);
 
-                Console.WriteLine("Possible move {0}, Tricks={1:F1}, Probability={2:F3}, Count/Weight {3:F3}, Count {4}", card, weightedTricks, probability, totalWeight, set.Count());
+                Console.WriteLine("Possible move {0}, Tricks={1:F2}, ProbabilityMaking={2:F4}, Count/Weight {3:F3}, Count {4}", card, weightedTricks, probability, totalWeight, set.Count());
 
                 // find the best move
                 if (bestScore.Equals(-1f) ||
@@ -62,7 +60,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
 
         // Test methods
         [Test]
-        public void TestPlay1()
+        public void TestPlay1A()
         {
             Hand fullDeck = "AKQJT98765432.AKQJT98765432.AKQJT98765432.AKQJT98765432".Parse();
             Hand north = "52.K7.QT543.JT84".Parse();
@@ -76,10 +74,36 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
+            Trump trump = Trump.No;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(10000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay1B()
+        {
+            Hand fullDeck = "AKQJT98765432.AKQJT98765432.AKQJT98765432.AKQJT98765432".Parse();
+            Hand north = "52.K7.QT543.JT84".Parse();
+            Hand south = "AQ.A42.K72.AQ973".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("QH"));
+            int minTricks = 9;
+            Hand oppos = fullDeck.Except(north).Except(south).Except(current_trick.Cards);
+
+            Constraints east = new Constraints(0, 13, 0, 13, 0, 0, 0, 13, 0, 37);
+            Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.BeginEvaluate(trump);
-            pimc.AwaitEvaluation(1000);
+            pimc.AwaitEvaluation(10000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
             Console.WriteLine("Combinations {0}", pimc.Combinations);
@@ -458,10 +482,6 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Hand south = "AQ...Q9".Parse();
             Play current_trick = new Play();
             Play previous_tricks = new Play();
-            current_trick.Add(new Card("JS"));
-            current_trick.Add(new Card("5S"));
-            current_trick.Add(new Card("TS"));
-            current_trick.Add(new Card("9S"));
             current_trick.Add(new Card("8S"));
             current_trick.Add(new Card("7S"));
             int minTricks = 2;
@@ -501,34 +521,6 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Trump trump = Trump.No;
             pimc.BeginEvaluate(trump);
             pimc.AwaitEvaluation(1000);
-            pimc.EndEvaluate();
-            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
-            Console.WriteLine("Combinations {0}", pimc.Combinations);
-            Console.WriteLine("Examined {0}", pimc.Examined);
-            Console.WriteLine("Playouts {0}", pimc.Playouts);
-            displayResults(minTricks);
-        }
-
-        [Test]
-        public void TestPlay17()
-        {
-            Hand north = ".87..KT63".Parse();
-            Hand south = "T.KJT.Q6.7".Parse();
-            Play current_trick = new Play();
-            Play previous_tricks = new Play();
-            current_trick.Add(new Card("4H"));
-            current_trick.Add(new Card("5H"));
-            int minTricks = 6;
-            Hand oppos = "4.Q6.T95.984".Parse();
-
-            // Constrant of minimum number of hearts greater than remaining cards
-            Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
-            Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
-            pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, -1, false);
-            Trump trump = Trump.Heart;
-            pimc.BeginEvaluate(trump);
-            pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
             Console.WriteLine("Combinations {0}", pimc.Combinations);
@@ -820,6 +812,96 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Trump trump = Trump.No;
             pimc.BeginEvaluate(trump);
             pimc.AwaitEvaluation(10000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay29()
+        {
+            Hand north = "8.J4.A.JT87".Parse();
+            Hand south = ".KT83.9.AQ5".Parse();
+            //Hand east = "63.Q75..Q53".Parse();
+            //Hand west = "Q2.983.8.A4".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            int minTricks = 7;
+            Hand oppos = "T976..QJ8763.K96432".Parse();
+
+            Constraints eastConstraints = new Constraints(0, 6, 0, 6, 0, 0, 0, 5, 0, 8);
+            Constraints westConstraints = new Constraints(0, 6, 0, 6, 0, 13, 0, 4, 0, 8);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 6, true, false);
+            Trump trump = Trump.Heart;
+            pimc.BeginEvaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay30()
+        {
+            Hand north = "J..J53.J8743".Parse();
+            Hand south = "AT98762.2.Q6.".Parse();
+            //Hand east = "63.Q75..Q53".Parse();
+            //Hand west = "Q2.983.8.A4".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("QS"));
+            current_trick.Add(new Card("5S"));
+            int minTricks = 8;
+            Hand oppos = "K4.QJ643.AKT98742.KQ95".Parse();
+
+            //Constraints eastConstraints = new Constraints(0, 5, 0, 9, 0, 8, 0, 5, 8, 19);
+            //Constraints westConstraints = new Constraints(0, 6, 0, 10, 0, 8, 0, 5, 0, 10);
+            //East(RHO) 0 5 0 10 0 8 0 5 7 20
+            //West(LHO) 0 7 0 9 0 8 0 6 0 11
+            Constraints eastConstraints = new Constraints(0, 5, 0, 10, 0, 8, 0, 5, 0, 20);
+            Constraints westConstraints = new Constraints(0, 7, 0, 9, 0, 8, 0, 6, 0, 11);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
+            Trump trump = Trump.Spade;
+            pimc.BeginEvaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay31()
+        {
+            Hand north = "4.2.K62.Q97".Parse();
+            Hand south = "T5.KT9.T4.J".Parse();
+            //Hand east = "63.Q75..Q53".Parse();
+            //Hand west = "Q2.983.8.A4".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            //current_trick.Add(new Card("QS"));
+            //current_trick.Add(new Card("5S"));
+            int minTricks = 5;
+            Hand oppos = "J98732.J.AQJ98753.K".Parse();
+
+            //Constraints eastConstraints = new Constraints(0, 5, 0, 9, 0, 8, 0, 5, 8, 19);
+            //Constraints westConstraints = new Constraints(0, 6, 0, 10, 0, 8, 0, 5, 0, 10);
+            //East(RHO) 0 5 0 10 0 8 0 5 7 20
+            //West(LHO) 0 7 0 9 0 8 0 6 0 11
+            Constraints eastConstraints = new Constraints(0, 2, 1, 6, 0, 2, 1, 6, 0, 11);
+            Constraints westConstraints = new Constraints(0, 2, 2, 7, 0, 2, 0, 5, 1, 14);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
+            Trump trump = Trump.Spade;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
             Console.WriteLine("Combinations {0}", pimc.Combinations);
