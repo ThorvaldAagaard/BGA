@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Threading.Tasks;
 
 namespace BGADLL
 {
@@ -56,5 +58,30 @@ namespace BGADLL
 				array[n] = value;
 			}
 		}
-	}
+
+        public void ParallelShuffle(int[] array, Random random)
+        {
+            Parallel.For(0, array.Length / 2, i =>
+            {
+                int j = random.Next(array.Length);
+                int temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            });
+        }
+
+        public IEnumerable<int> LcgShuffle(int n, int seed)
+        {
+            const int Multiplier = 1664525; // Common multiplier
+            const int Increment = 1013904223; // Common increment
+            const int Modulus = (int)(1 << 31); // 2^31
+
+            int x = seed;
+            for (int i = 0; i < n; i++)
+            {
+                x = (Multiplier * x + Increment) % Modulus;
+                yield return x % n; // Generate pseudo-random index
+            }
+        }
+    }
 }

@@ -63,7 +63,6 @@ namespace BGADLL
         public string LegalMovesToString => string.Join(", ", LegalMoves);
         public CardTricks Output => this.output;
 
-
         public PIMCDef(int MaxThreads, bool verbose)
         {
             this.verbose = verbose;
@@ -72,9 +71,10 @@ namespace BGADLL
             if (MaxThreads > 0)
                 this.threads = Math.Min(MaxThreads, this.threads);
             this.free = this.threads;
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            Version version = assembly.GetName().Version;
-            Console.WriteLine($"PIMCDef Loaded - version: {version} Threads: {this.threads} Verbose: {this.verbose}");
+            if (verbose)
+            {
+                Console.WriteLine($"PIMCDef Loaded - Threads: {this.threads}");
+            }
         }
 
         public PIMCDef(int MaxThreads) : this(MaxThreads, false)
@@ -84,6 +84,13 @@ namespace BGADLL
         // Parameterless constructor calling the existing constructor with -1 as the parameter
         public PIMCDef() : this(-1)
         {
+        }
+
+        public string version()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Version assemblyversion = assembly.GetName().Version;
+            return $"{assemblyversion}";
         }
 
         private void Clear(List<byte[]> list)
@@ -498,6 +505,8 @@ namespace BGADLL
                             // repeat if failed to dequeue item
                             if (!this.queue.TryDequeue(out int pos))
                             {
+                                if (this.queue.IsEmpty)
+                                    break; // Exit if the queue is actually empty
                                 Thread.Sleep(10); continue;
                             }
 

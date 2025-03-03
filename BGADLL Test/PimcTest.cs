@@ -102,8 +102,8 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
-            pimc.AwaitEvaluation(10000);
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
             Console.WriteLine("Combinations {0}", pimc.Combinations);
@@ -132,7 +132,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
                 pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
                 Trump trump = Trump.No;
-                pimc.BeginEvaluate(trump);
+                pimc.Evaluate(trump);
                 pimc.AwaitEvaluation(1000);
                 pimc.EndEvaluate();
                 Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -169,7 +169,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -196,7 +196,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
             Trump trump = Trump.Diamond;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -224,7 +224,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -249,7 +249,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -275,7 +275,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
             Trump trump = Trump.Heart;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -301,7 +301,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -329,7 +329,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.Heart;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -357,7 +357,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.Diamond;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -385,7 +385,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.Diamond;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -411,7 +411,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.Diamond;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -437,7 +437,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -465,7 +465,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -493,7 +493,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -519,7 +519,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -547,7 +547,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, -1, false);
             Trump trump = Trump.Club;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -575,7 +575,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -603,7 +603,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -628,7 +628,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -652,7 +652,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(500);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -680,7 +680,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.Spade;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -706,7 +706,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -732,7 +732,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.Club;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -758,7 +758,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -784,7 +784,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[4] {
                 north, south, east, west}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 10, true);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(10000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -810,7 +810,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[4] {
                 north, south, east, west}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 2, true);
             Trump trump = Trump.No;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(10000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -836,7 +836,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 6, true, false);
             Trump trump = Trump.Heart;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -868,7 +868,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
             Trump trump = Trump.Spade;
-            pimc.BeginEvaluate(trump);
+            pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();
             Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
@@ -899,6 +899,83 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints westConstraints = new Constraints(0, 2, 2, 7, 0, 2, 0, 5, 1, 14);
             pimc.SetupEvaluation(new Hand[2] {
                 north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
+            Trump trump = Trump.Spade;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay32()
+        {
+            Hand north = "7.T..9".Parse();
+            Hand south = "..2.AJ".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            int minTricks = 3;
+            Hand oppos = "9.J87..K8".Parse();
+
+            Constraints eastConstraints = new Constraints(0, 2, 0, 6, 0, 3, 0, 5, 0, 11);
+            Constraints westConstraints = new Constraints(0, 2, 0, 7, 0, 3, 0, 5, 0, 14);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, true, false);
+            Trump trump = Trump.Diamond;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay33()
+        {
+            Hand north = "7.T..".Parse();
+            Hand south = "..2.AJ".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("9C"));
+            current_trick.Add(new Card("8C"));
+            int minTricks = 3;
+            Hand oppos = "9.J87..K".Parse();
+
+            Constraints eastConstraints = new Constraints(0, 2, 0, 6, 0, 3, 0, 5, 0, 11);
+            Constraints westConstraints = new Constraints(0, 2, 0, 7, 0, 3, 0, 5, 0, 14);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
+            Trump trump = Trump.Diamond;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay34()
+        {
+            Hand north = "J...KT".Parse();
+            Hand south = "K..87.".Parse();
+            Hand west = "4.JT7.K9643.5".Parse();
+            Hand east = "763.8532.Q.82".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("5C"));
+            int minTricks = 3;
+            Hand oppos = ".9.T.AJ9".Parse();
+
+            Constraints eastConstraints = new Constraints(0, 2, 0, 1, 0, 0, 0, 0, 0, 7);
+            Constraints westConstraints = new Constraints(1, 3, 0, 0, 0, 1, 0, 0, 0, 8);
+            pimc.SetupEvaluation(new Hand[4] {
+                north, south, east, west}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, true, false);
             Trump trump = Trump.Spade;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);

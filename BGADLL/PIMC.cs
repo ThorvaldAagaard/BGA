@@ -58,7 +58,6 @@ namespace BGADLL
         public string[] LegalMoves => this.legalMoves.ToArray();
         public string LegalMovesToString => string.Join(", ", LegalMoves);
         public CardTricks Output => this.output;
-
         public PIMC(int MaxThreads, bool verbose)
         {
             this.verbose = verbose;
@@ -67,9 +66,10 @@ namespace BGADLL
             if (MaxThreads > 0)
                 this.threads = Math.Min(MaxThreads, this.threads);
             this.free = this.threads;
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            Version version = assembly.GetName().Version;
-            Console.WriteLine($"PIMC Loaded - version: {version} Threads: {this.threads}  Verbose: {this.verbose}");
+            if (verbose)
+            {
+                Console.WriteLine($"PIMC Loaded - Threads: {this.threads}");
+            }
         }
 
         public PIMC(int MaxThreads) : this(MaxThreads, false)
@@ -88,7 +88,14 @@ namespace BGADLL
             GC.Collect(id, GCCollectionMode.Forced);
         }
 
+        public string version()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Version assemblyversion = assembly.GetName().Version;
+            return $"{assemblyversion}";
+        }
         public void Clear()
+
         {
             this.commands = "";
             this.output.Clear();
@@ -113,18 +120,39 @@ namespace BGADLL
             }
             return checksum;
         }
+
+        public int GetShuffledIndex(int n)
+        {
+            const int Multiplier = 1664525;
+            const int Increment = 1013904223;
+            const long Modulus = 1L << 31;
+
+            long x = this.seed;
+            x = (Multiplier * x + Increment * n) % Modulus; // Skip intermediate iterations
+            return (int)((x % noOfCombinations + noOfCombinations) % noOfCombinations);
+        }
+
+        // Access combinations in pseudo-random order using LCG
+        // Access combinations via LCG
+        public int GetShuffledCombinationIndex(int i)
+        {
+            // We have shuffled the combinations indexes, so here we justreturn tthe num,ber
+            return i;
+            //int shuffledIndex = GetShuffledIndex(i);
+            //Console.WriteLine("{0} {1} {2}", i, shuffledIndex, noOfCombinations);
+            //return shuffledIndex;
+        }
+
         public void LoadCombinations(int n, int k)
         {
             noOfCombinations = this.utils.Count(n, k);
             this.combinationIndex = new int[noOfCombinations];
-
             // Create all combinations
             foreach (byte[] series in this.utils.Generate(n, k))
                 this.combinations.Add(series.ToArray());
 
             for (int i = 0; i < noOfCombinations; i++) combinationIndex[i] = i;
             this.utils.Shuffle(combinationIndex, noOfCombinations, this.random);
-
         }
 
         public IEnumerable<string> LegitMoves(Player player)
@@ -309,8 +337,8 @@ namespace BGADLL
             this.playouts = 0;
             this.leader = player;
 
-            seed = CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
-            this.random = new Random(seed);
+            this.seed = CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
+            this.random = new Random(this.seed);
             this.LoadCombinations(remainingCards.Count, remainingCards.Count / 2);
         }
 
@@ -340,7 +368,8 @@ namespace BGADLL
                     break;
                 }
                 // recover hands before leads
-                var set = this.combinations[combinationIndex[i]];
+                int combinationIndex = this.GetShuffledCombinationIndex(i);
+                var set = this.combinations[combinationIndex];
                 this.examined += 1;
                 Hand westHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
                 Hand eastHand = this.remainingCards.Except(westHand);
@@ -373,11 +402,11 @@ namespace BGADLL
                 }
 
                 string hand = N + " " + eastHand + " " + S + " " + westHand;
-                if (this.verbose && playouts < 10)
+                if (this.verbose && playouts <= 20)
                 {
                     Console.WriteLine("Hand N:{0}", hand);
                 }
-                samples.Add(combinationIndex[i]);
+                samples.Add(combinationIndex);
                 playouts += 1;
 
             }
@@ -427,7 +456,8 @@ namespace BGADLL
                             // repeat if failed to dequeue item
                             if (!this.queue.TryDequeue(out int pos))
                             {
-                                Console.WriteLine("Dequeue failed");
+                                if (this.queue.IsEmpty)
+                                    break; // Exit if the queue is actually empty
                                 Thread.Sleep(10); continue;
                             }
 
@@ -456,6 +486,7 @@ namespace BGADLL
                             double weight1 = sampleEast.getOdds();
                             double weight2 = sampleWest.getOdds();
                             weight = weight1 * weight2;
+                            //Console.WriteLine("Hand N:{0} {1}", format, weight);
 
                             DDS dds = new DDS(format, trump, this.leader);
                             try
@@ -559,6 +590,9 @@ namespace BGADLL
         }
         public void BeginEvaluate(Trump trump)
         {
+            //this.combinationIndex = new int[noOfCombinations];
+            //for (int i = 0; i < noOfCombinations; i++) combinationIndex[i] = i;
+            //this.utils.Shuffle(combinationIndex, noOfCombinations, this.random);
             //Console.WriteLine("BeginEvaluation");
             foreach (int i in combinationIndex) this.queue.Enqueue(i);
             this.evaluate = true;

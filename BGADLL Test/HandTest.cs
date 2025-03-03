@@ -33,9 +33,9 @@ namespace BGA.Tests // Create a separate namespace for your tests
         {
             Constraints con = new Constraints(0, 3, 0, 6, 4, 7, 0, 4, 1, 10);
             Hand hand = "J..QJ97652.".Parse();
-            Assert.IsNotNull(hand);
+            Assert.That(hand, !Is.Null);
             var diamonds = hand.CardsInSuit(c => c.Suit == Suit.Diamond);
-            Assert.AreEqual(7, diamonds);
+            Assert.That(7 == diamonds, Is.True);
         }
         [Test]
         public void TestCardList()
@@ -46,8 +46,8 @@ namespace BGA.Tests // Create a separate namespace for your tests
             current_trick.Add(new Card("9D"));
             Console.WriteLine(current_trick.ToString());
             Console.WriteLine(current_trick.ListAsString());
-            Assert.AreEqual(".4.9.4", current_trick.ToString());
-            Assert.AreEqual("4H 4C 9D", current_trick.ListAsString());
+            Assert.That(current_trick.ToString() == ".4.9.4", Is.True);
+            Assert.That(current_trick.ListAsString() == "4H 4C 9D", Is.True);
         }
     }
 }
