@@ -130,7 +130,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             try
             {
                 pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
                 Trump trump = Trump.No;
                 pimc.Evaluate(trump);
                 pimc.AwaitEvaluation(1000);
@@ -167,7 +167,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 5, 0, 7, 0, 0, 0, 7, 0, 8);
             Constraints west = new Constraints(0, 3, 0, 6, 0, 7, 0, 4, 0, 10);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -194,7 +194,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.Diamond;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -222,7 +222,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 5, 0, 7, 0, 0, 0, 7, 0, 8);
             Constraints west = new Constraints(0, 3, 0, 6, 0, 7, 0, 4, 0, 10);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -247,7 +247,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -273,7 +273,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 5, 0, 7, 0, 0, 0, 0, 0, 8);
             Constraints west = new Constraints(0, 3, 0, 6, 0, 0, 0, 0, 0, 10);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.Heart;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -299,7 +299,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 5, 0, 0, 0, 1, 0, 4, 0, 8);
             Constraints west = new Constraints(0, 5, 0, 0, 0, 0, 0, 4, 0, 10);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -327,7 +327,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 2, 0, 0, 0, 0, 1, 4, 0, 5);
             Constraints west = new Constraints(0, 2, 0, 13, 0, 0, 0, 3, 0, 5);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.Heart;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -355,7 +355,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 5, 0, 3, 0, 3, 0, 13, 0, 10);
             Constraints west = new Constraints(0, 5, 0, 4, 0, 3, 0, 0, 1, 12);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.Diamond;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -383,7 +383,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 7, 0, 7, 0, 7, 0, 13, 0, 12);
             Constraints west = new Constraints(0, 7, 0, 7, 0, 7, 0, 13, 0, 12);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.Diamond;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -409,7 +409,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(2, 7, 0, 7, 0, 7, 0, 13, 0, 12);
             Constraints west = new Constraints(2, 7, 0, 7, 0, 7, 0, 13, 0, 12);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.Diamond;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -435,7 +435,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(2, 7, 0, 7, 0, 7, 0, 13, 0, 12);
             Constraints west = new Constraints(2, 7, 0, 7, 0, 7, 0, 13, 0, 12);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -463,7 +463,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 5, 0, 7, 0, 8, 0, 7, 0, 8);
             Constraints west = new Constraints(0, 3, 0, 6, 0, 7, 0, 4, 0, 10);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -491,7 +491,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 6, 0, 7, 0, 8, 0, 7, 0, 12);
             Constraints west = new Constraints(0, 6, 0, 6, 0, 7, 0, 6, 0, 12);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -517,7 +517,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints east = new Constraints(0, 0, 1, 5, 0, 4, 0, 0, 0, 12);
             Constraints west = new Constraints(0, 0, 0, 4, 0, 4, 0, 13, 0, 11);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, -1, false);
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
@@ -545,7 +545,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, false);
             Trump trump = Trump.Club;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -573,7 +573,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -601,7 +601,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -626,7 +626,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -650,7 +650,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(500);
@@ -678,7 +678,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 0, 0, 13, 0, 13, 0, 0, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 0, 0, 0, 0, 0, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.Spade;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -704,7 +704,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 3, 0, 1, 0, 0, 0, 3, 3, 11);
             Constraints westConstraints = new Constraints(0, 3, 0, 2, 0, 0, 0, 2, 0, 8);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -730,7 +730,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.Club;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -756,7 +756,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints eastConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints westConstraints = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimc.SetupEvaluation(new Hand[2] {
-                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, -1, false);
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, false);
             Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(2000);
@@ -977,6 +977,33 @@ namespace BGA.Tests // Create a separate namespace for your tests
             pimc.SetupEvaluation(new Hand[4] {
                 north, south, east, west}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.North, 200, true, false);
             Trump trump = Trump.Spade;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
+        [Test]
+        public void TestPlay35()
+        {
+            Hand north = "AJ4.J.KQ.AKT632".Parse();
+            Hand south = "Q97.KT.A9874.95".Parse();
+            Hand west = ".A5..".Parse();
+            Hand east = ".3..".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("5H"));
+            int minTricks = 9;
+            Hand oppos = "KT86532.Q8764.JT6532.QJ874".Parse();
+
+            Constraints eastConstraints = new Constraints(0, 5, 0, 5, 3, 5, 0, 5, 0, 10);
+            Constraints westConstraints = new Constraints(0, 5, 1, 6, 0, 2, 2, 7, 0, 12);
+            pimc.SetupEvaluation(new Hand[4] {
+                north, south, east, west}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
+            Trump trump = Trump.No;
             pimc.Evaluate(trump);
             pimc.AwaitEvaluation(1000);
             pimc.EndEvaluate();

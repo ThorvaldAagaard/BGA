@@ -137,10 +137,10 @@ namespace BGADLL
         public int GetShuffledCombinationIndex(int i)
         {
             // We have shuffled the combinations indexes, so here we justreturn tthe num,ber
-            return i;
-            //int shuffledIndex = GetShuffledIndex(i);
+            //return i;
+            int shuffledIndex = GetShuffledIndex(i);
             //Console.WriteLine("{0} {1} {2}", i, shuffledIndex, noOfCombinations);
-            //return shuffledIndex;
+            return shuffledIndex;
         }
 
         public void LoadCombinations(int n, int k)
@@ -337,23 +337,9 @@ namespace BGADLL
             this.playouts = 0;
             this.leader = player;
 
-            this.seed = CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
+            this.seed = this.utils.CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
             this.random = new Random(this.seed);
             this.LoadCombinations(remainingCards.Count, remainingCards.Count / 2);
-        }
-
-        static int CalculateSeed(string input)
-        {
-            // Calculate the SHA-256 hash
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = sha256.ComputeHash(inputBytes);
-
-                // Convert the first 4 bytes of the hash to an integer and take modulus
-                int hashInteger = BitConverter.ToInt32(hashBytes, 0);
-                return hashInteger;
-            }
         }
 
         public List<int> findSamples(Trump trump)

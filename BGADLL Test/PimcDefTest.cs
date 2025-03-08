@@ -134,7 +134,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints partnerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, 200, false, overdummy);
             Trump trump = Trump.Heart;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(1000);
@@ -163,7 +163,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints partnerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, false, overdummy);
             Trump trump = Trump.Diamond;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(1000);
@@ -189,7 +189,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints partnerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, 200, false, overdummy);
             Trump trump = Trump.Diamond;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(1000);
@@ -216,7 +216,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 0, 0, 37);
             Constraints partnerConsts = new Constraints(0, 13, 0, 0, 0, 0, 0, 13, 0, 37);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, 200, false, overdummy);
             Trump trump = Trump.Diamond;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(1000);
@@ -242,7 +242,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 5, 0, 3, 0, 2, 0, 1, 0, 5);
             Constraints partnerConsts = new Constraints(0, 5, 0, 3, 0, 2, 0, 1, 0, 5);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, 200, false, overdummy);
             Trump trump = Trump.No;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(1000);
@@ -268,7 +268,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(5, 7, 1, 4, 0, 5, 0, 0, 10, 17);
             Constraints partnerConsts = new Constraints(0, 2, 2, 7, 1, 7, 0, 0, 0, 7);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, false, overdummy);
             Trump trump = Trump.Club;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(10000);
@@ -294,7 +294,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 5, 0, 3, 1, 4, 0, 3, 3, 7);
             Constraints partnerConsts = new Constraints(1, 7, 0, 2, 0, 1, 0, 4, 0, 6);
             pimcdef.SetupEvaluation(new Hand[2] {
-                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, false, overdummy);
+                dummy, myhand }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, false, overdummy);
             Trump trump = Trump.Heart;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(10000);
@@ -324,7 +324,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 5, 0, 3, 1, 4, 0, 3, 3, 15);
             Constraints partnerConsts = new Constraints(1, 7, 0, 2, 0, 1, 0, 4, 0, 16);
             pimcdef.SetupEvaluation(new Hand[4] {
-                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, false, overdummy);
+                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, false, overdummy);
             Trump trump = Trump.Heart;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(10000);
@@ -356,7 +356,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(4, 6, 0, 0, 1, 4, 0, 0, 7, 13);
             Constraints partnerConsts = new Constraints(0, 1, 0, 14, 3, 5, 0, 0, 1, 7);
             pimcdef.SetupEvaluation(new Hand[4] {
-                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, -1, false, overdummy);
+                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.West, 200, false, overdummy);
             Trump trump = Trump.Club;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(10000);
@@ -386,7 +386,7 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Constraints declarerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             Constraints partnerConsts = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
             pimcdef.SetupEvaluation(new Hand[4] {
-                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, -1, true, overdummy);
+                dummy, myhand, partner, declarer }, oppos, current_trick, previous_tricks, new Constraints[2] { declarerConsts, partnerConsts }, Macros.Player.East, 200, true, overdummy);
             Trump trump = Trump.Club;
             pimcdef.BeginEvaluate(trump);
             pimcdef.AwaitEvaluation(10000);

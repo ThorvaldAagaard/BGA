@@ -382,26 +382,13 @@ namespace BGADLL
             this.playouts = 0;
             this.leader = player;
 
-            seed = CalculateSeed(this.dummyHand.ToString() + this.ourHand.ToString());
+            seed = this.utils.CalculateSeed(this.dummyHand.ToString() + this.ourHand.ToString());
             this.random = new Random(seed);
 
             this.LoadCombinations(remainingCards.Count, remainingCards.Count / 2);
             return null;
         }
 
-        static int CalculateSeed(string input)
-        {
-            // Calculate the SHA-256 hash
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = sha256.ComputeHash(inputBytes);
-
-                // Convert the first 4 bytes of the hash to an integer and take modulus
-                int hashInteger = BitConverter.ToInt32(hashBytes, 0);
-                return hashInteger;
-            }
-        }
         public List<int> findSamples(Trump trump)
         {
             List<int> samples = new List<int>();
@@ -583,7 +570,7 @@ namespace BGADLL
                             }
                             foreach (string card in this.legalMoves)
                             {
-                                int tricks = dds.Tricks(card), result = -1;
+                                int tricks = dds.Tricks(card);
                                 try
                                 {
                                     output.AddTricksWithWeight(card, (byte)tricks, weight, pos);
@@ -712,7 +699,7 @@ namespace BGADLL
                             }
                             foreach (string card in this.legalMoves)
                             {
-                                int tricks = dds.Tricks(card), result = -1;
+                                int tricks = dds.Tricks(card);
                                 try
                                 {
                                     output.AddTricksWithWeight(card, (byte)tricks, tricks, pos);
