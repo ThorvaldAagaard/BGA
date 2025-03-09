@@ -1013,5 +1013,34 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Console.WriteLine("Playouts {0}", pimc.Playouts);
             displayResults(minTricks);
         }
+        [Test]
+        public void TestPlay36()
+        {
+            Hand north = ".9..".Parse();
+            Hand south = "..A9.".Parse();
+            //Hand west = ".A5..".Parse();
+            //Hand east = ".3..".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            current_trick.Add(new Card("QS"));
+            current_trick.Add(new Card("JS"));
+            current_trick.Add(new Card("8S"));
+            int minTricks = 0;
+            Hand oppos = "T.Q..".Parse();
+
+            Constraints eastConstraints = new Constraints(0, 0, 0, 0, 0, 1, 0, 1, 0, 99);
+            Constraints westConstraints = new Constraints(0, 0, 0, 0, 0, 1, 0, 1, 0, 99);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south}, oppos, current_trick, previous_tricks, new Constraints[2] { eastConstraints, westConstraints }, Macros.Player.South, 200, true, false);
+            Trump trump = Trump.No;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(1000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+        }
     }
 }

@@ -136,7 +136,7 @@ namespace BGADLL
         // Access combinations via LCG
         public int GetShuffledCombinationIndex(int i)
         {
-            // We have shuffled the combinations indexes, so here we justreturn tthe num,ber
+            // We have shuffled the combinations indexes, so here we just return the number
             //return i;
             int shuffledIndex = GetShuffledIndex(i);
             //Console.WriteLine("{0} {1} {2}", i, shuffledIndex, noOfCombinations);
@@ -353,9 +353,7 @@ namespace BGADLL
                 {
                     break;
                 }
-                // recover hands before leads
-                int combinationIndex = this.GetShuffledCombinationIndex(i);
-                var set = this.combinations[combinationIndex];
+                var set = this.combinations[combinationIndex[i]];
                 this.examined += 1;
                 Hand westHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
                 Hand eastHand = this.remainingCards.Except(westHand);
@@ -392,7 +390,7 @@ namespace BGADLL
                 {
                     Console.WriteLine("Hand N:{0}", hand);
                 }
-                samples.Add(combinationIndex);
+                samples.Add(combinationIndex[i]);
                 playouts += 1;
 
             }
