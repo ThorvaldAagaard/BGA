@@ -36,7 +36,46 @@ namespace BGADLL
             }
         }
 
-		public int Count(int n, int k)
+        public byte[] GetCombinationAtIndex(int n, int k, long index)
+        {
+            byte[] result = new byte[k];
+            int a = n;
+            int b = k;
+            long x = index;
+
+            int r = 0;
+            for (int i = 1; i <= n && r < k; i++)
+            {
+                long c = Binomial(n - i, k - r - 1);
+                if (x < c)
+                {
+                    result[r++] = (byte)i;
+                }
+                else
+                {
+                    x -= c;
+                }
+            }
+
+            return result;
+        }
+
+        // Use a safe binomial function for large values
+        public long Binomial(int n, int k)
+        {
+            if (k < 0 || k > n) return 0;
+            if (k == 0 || k == n) return 1;
+
+            long result = 1;
+            for (int i = 1; i <= k; i++)
+            {
+                result *= n--;
+                result /= i;
+            }
+
+            return result;
+        }
+        public int Count(int n, int k)
         {
 			int result = 1;
 			if (k > n - k) k = n - k;

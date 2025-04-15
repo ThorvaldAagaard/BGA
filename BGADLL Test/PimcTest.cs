@@ -1042,5 +1042,57 @@ namespace BGA.Tests // Create a separate namespace for your tests
             Console.WriteLine("Playouts {0}", pimc.Playouts);
             displayResults(minTricks);
         }
+        [Test]
+        public void TestPlay37()
+        {
+            Hand north = "KQ7..Q4.T".Parse();
+            Hand south = "AJ.9876..".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            int minTricks = 6;
+            Hand oppos = "96532.QJT..9653".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 7, 0, 7, 0, 7, 0, 13, 0, 12);
+            Constraints west = new Constraints(0, 7, 0, 7, 0, 7, 0, 13, 0, 12);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 2000, false, false);
+            Trump trump = Trump.Spade;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(2000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+
+        }
+        [Test]
+        public void TestPlay38()
+        {
+            Hand north = "8.JT5..AJ874".Parse();
+            Hand south = "JT952.A7..95".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+            int minTricks = 6;
+            Hand oppos = "KQ7.KQ986432.987.KQT6".Parse();
+
+            // Constrant of minimum number of hearts greater than remaining cards
+            Constraints east = new Constraints(0, 7, 0, 7, 0, 7, 0, 13, 0, 12);
+            Constraints west = new Constraints(0, 7, 0, 7, 0, 7, 0, 13, 0, 12);
+            pimc.SetupEvaluation(new Hand[2] {
+                north, south }, oppos, current_trick, previous_tricks, new Constraints[2] { east, west }, Macros.Player.South, 2000, false, false);
+            Trump trump = Trump.Spade;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(2000);
+            pimc.EndEvaluate();
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+
+        }
     }
 }

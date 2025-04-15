@@ -29,6 +29,8 @@ namespace BGADLL
         private readonly Utils utils = new Utils();
         private Random random = null;
         private int noOfCombinations = 0;
+        private int combination_n;
+        private int combination_k;
         private int examined = 0;
         private int seed = 0;
         private int activeThreads = 0;  // Counter to track active threads
@@ -125,7 +127,17 @@ namespace BGADLL
             }
             return checksum;
         }
+
         public void LoadCombinations(int n, int k)
+        {
+            noOfCombinations = (int)this.utils.Binomial(n, k);  // optional if you still use it elsewhere
+            this.combination_n = n;
+            this.combination_k = k;
+            this.combinationIndex = Enumerable.Range(0, noOfCombinations).ToArray();
+            this.utils.Shuffle(combinationIndex, noOfCombinations, this.random);
+
+        }
+        public void LoadCombinationsOld(int n, int k)
         {
             noOfCombinations = this.utils.Count(n, k);
             this.combinationIndex = new int[noOfCombinations];
@@ -403,7 +415,9 @@ namespace BGADLL
                     break;
                 }
 
-                var set = this.combinations[combinationIndex[i]];
+                int idx = combinationIndex[i];
+                var set = this.utils.GetCombinationAtIndex(this.combination_n, this.combination_k, idx);
+                //var set = this.combinations[combinationIndex[i]];
                 Interlocked.Increment(ref this.examined);
                 // First find partners hand
                 Hand partnerHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
@@ -500,7 +514,8 @@ namespace BGADLL
                             // We could use default weight of 1, but as we include fusion strategy we have 2 calculations for each combination
                             double weight = 1.0f;
                             // recover hands before leads
-                            var set = this.combinations[pos];
+                            var set = this.utils.GetCombinationAtIndex(combination_n, combination_k, pos);
+                            //var set = this.combinations[pos];
                             Interlocked.Increment(ref this.examined);
                             // First find partners hand
                             Hand partnerHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
@@ -640,7 +655,8 @@ namespace BGADLL
                             }
 
                             // recover hands before leads
-                            var set = this.combinations[pos];
+                            var set = this.utils.GetCombinationAtIndex(combination_n, combination_k, pos);
+                            //var set = this.combinations[pos];
                             Interlocked.Increment(ref this.examined);
                             // First find partners hand
                             Hand partnerHand = new Hand(set.Select(index => this.remainingCards[index - 1]));
