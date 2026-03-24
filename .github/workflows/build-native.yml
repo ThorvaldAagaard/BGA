@@ -23,15 +23,15 @@ jobs:
           - os: ubuntu-latest
             rid: linux-x64
             output_dir: linux/x64
-            lib_name: libBGADLL.so
+            lib_name: BGADLL.so
           - os: ubuntu-24.04-arm
             rid: linux-arm64
             output_dir: linux/arm64
-            lib_name: libBGADLL.so
+            lib_name: BGADLL.so
           - os: macos-latest
             rid: osx-arm64
             output_dir: macos/arm64
-            lib_name: libBGADLL.dylib
+            lib_name: BGADLL.dylib
 
     runs-on: ${{ matrix.os }}
 
@@ -43,26 +43,15 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Build libbcalcdds (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          # Build bcalcdds from source if available, or download pre-built
-          echo "TODO: Build or provide libbcalcdds for Linux"
-          # For now, ensure the library is available in the publish output
-
-      - name: Build libbcalcdds (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          echo "TODO: Build or provide libbcalcdds for macOS"
-
       - name: Publish NativeAOT
         working-directory: BGADLL.Native
-        run: |
-          dotnet publish BGADLL.Native.csproj \
-            -c Release \
-            -r ${{ matrix.rid }} \
-            --self-contained true \
-            -o publish
+        shell: bash
+        run: dotnet publish BGADLL.Native.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o publish
+
+      - name: List publish output
+        working-directory: BGADLL.Native/publish
+        shell: bash
+        run: ls -la
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
