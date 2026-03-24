@@ -1,0 +1,96 @@
+name: Build Native Libraries
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'BGADLL/**'
+      - 'BGADLL.Native/**'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            output_dir: windows/x64
+            lib_name: BGADLL.dll
+          - os: windows-11-arm
+            rid: win-arm64
+            output_dir: windows/arm64
+            lib_name: BGADLL.dll
+          - os: ubuntu-latest
+            rid: linux-x64
+            output_dir: linux/x64
+            lib_name: libBGADLL.so
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            output_dir: linux/arm64
+            lib_name: libBGADLL.so
+          - os: macos-latest
+            rid: osx-arm64
+            output_dir: macos/arm64
+            lib_name: libBGADLL.dylib
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build libbcalcdds (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          # Build bcalcdds from source if available, or download pre-built
+          echo "TODO: Build or provide libbcalcdds for Linux"
+          # For now, ensure the library is available in the publish output
+
+      - name: Build libbcalcdds (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          echo "TODO: Build or provide libbcalcdds for macOS"
+
+      - name: Publish NativeAOT
+        working-directory: BGADLL.Native
+        run: |
+          dotnet publish BGADLL.Native.csproj \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -o publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgadll-${{ matrix.rid }}
+          path: BGADLL.Native/publish/${{ matrix.lib_name }}
+
+  collect:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Organize
+        run: |
+          mkdir -p release/BGA/{windows/x64,windows/arm64,linux/x64,linux/arm64,macos/arm64}
+          cp artifacts/bgadll-win-x64/* release/BGA/windows/x64/ 2>/dev/null || true
+          cp artifacts/bgadll-win-arm64/* release/BGA/windows/arm64/ 2>/dev/null || true
+          cp artifacts/bgadll-linux-x64/* release/BGA/linux/x64/ 2>/dev/null || true
+          cp artifacts/bgadll-linux-arm64/* release/BGA/linux/arm64/ 2>/dev/null || true
+          cp artifacts/bgadll-osx-arm64/* release/BGA/macos/arm64/ 2>/dev/null || true
+          find release -type f
+
+      - name: Upload combined release
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgadll-all-platforms
+          path: release/BGA/

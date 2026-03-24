@@ -272,7 +272,7 @@ namespace BGADLL
         {
             SetupEvaluation(our, oppos, current_trick, previous_tricks, consts, nextToLead, maxPlayout, autoplaysingleton, true);
         }
-    public void SetupEvaluation(Hand[] our, Hand oppos, Play current_trick, Play previous_tricks, Constraints[] consts, Player nextToLead, int maxPlayout, bool autoplaysingleton, bool useStratefy)
+    public void SetupEvaluation(Hand[] our, Hand oppos, Play current_trick, Play previous_tricks, Constraints[] consts, Player nextToLead, int maxPlayout, bool autoplaysingleton, bool useStrategy)
         {
             //Console.WriteLine("SetupEvaluation");
             this.current_trick = current_trick;
@@ -302,7 +302,7 @@ namespace BGADLL
             this.remainingCards.AddRange(oppos);
             validateInput();
             this.maxPlayout = maxPlayout;
-            this.useFusuionStrategy = useStratefy;
+            this.useFusuionStrategy = useStrategy;
             Player player = (Player)((int)nextToLead);
             this.legalMoves = LegitMoves(nextToLead);
 
@@ -525,7 +525,7 @@ namespace BGADLL
                                         !this.Ignore(westHand, this.eastConsts))
                                     {
                                         // make sure calculated tricks are correct
-                                        DDS d1 = new DDS(dds.Clone());
+                                        DDS d1 = dds.CloneDDS();
                                         string reversed = N + " " + W + " " + S + " " + E;
                                         if (this.verbose)
                                         {
@@ -730,7 +730,7 @@ namespace BGADLL
                                         !this.Ignore(westHand, this.eastConsts))
                                     {
                                         // make sure calculated tricks are correct
-                                        DDS d1 = new DDS(dds.Clone());
+                                        DDS d1 = dds.CloneDDS();
                                         string reversed = N + " " + W + " " + S + " " + E;
                                         if (this.verbose)
                                         {

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+    <RootNamespace>BGADLL</RootNamespace>
+    <AssemblyName>BGADLL</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputType>Library</OutputType>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>full</TrimMode>
+    <Version>0.9.6.6</Version>
+  </PropertyGroup>
+
+  <!-- Include all .cs files from the original BGADLL project -->
+  <ItemGroup>
+    <Compile Include="..\BGADLL\Card.cs" Link="Card.cs" />
+    <Compile Include="..\BGADLL\CardTricks.cs" Link="CardTricks.cs" />
+    <Compile Include="..\BGADLL\Constraints.cs" Link="Constraints.cs" />
+    <Compile Include="..\BGADLL\DDS.cs" Link="DDS.cs" />
+    <Compile Include="..\BGADLL\Deck.cs" Link="Deck.cs" />
+    <Compile Include="..\BGADLL\Extensions.cs" Link="Extensions.cs" />
+    <Compile Include="..\BGADLL\Hand.cs" Link="Hand.cs" />
+    <Compile Include="..\BGADLL\Macros.cs" Link="Macros.cs" />
+    <Compile Include="..\BGADLL\PIMC.cs" Link="PIMC.cs" />
+    <Compile Include="..\BGADLL\PIMCDef.cs" Link="PIMCDef.cs" />
+    <Compile Include="..\BGADLL\Play.cs" Link="Play.cs" />
+    <Compile Include="..\BGADLL\Utils.cs" Link="Utils.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.0" />
+  </ItemGroup>
+
+</Project>
