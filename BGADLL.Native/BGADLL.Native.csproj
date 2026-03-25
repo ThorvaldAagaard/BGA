@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>full</TrimMode>
-    <Version>0.9.6.6</Version>
+    <Version>0.9.6.7</Version>
   </PropertyGroup>
 
   <!-- Include all .cs files from the original BGADLL project -->
