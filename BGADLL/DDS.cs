@@ -74,16 +74,6 @@ namespace BGADLL
         [StructLayout(LayoutKind.Sequential)]
         private struct FutureTricks
         {
-            public FutureTricks()
-            {
-                nodes = 0;
-                cards = 0;
-                suit = new int[13];
-                rank = new int[13];
-                equals = new int[13];
-                score = new int[13];
-            }
-
             public int nodes;
             public int cards;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
@@ -96,12 +86,24 @@ namespace BGADLL
             public int[] score;
         }
 
+        private static FutureTricks NewFutureTricks()
+        {
+            var ft = new FutureTricks();
+            ft.nodes = 0;
+            ft.cards = 0;
+            ft.suit = new int[13];
+            ft.rank = new int[13];
+            ft.equals = new int[13];
+            ft.score = new int[13];
+            return ft;
+        }
+
         private static bool _haglundInitialized = false;
         private static readonly object _haglundInitLock = new object();
 
         // Thread-index pool for concurrent Haglund DDS calls (indices 0-7)
         private static readonly System.Collections.Concurrent.BlockingCollection<int> _threadIndexPool =
-            new(new System.Collections.Concurrent.ConcurrentQueue<int>(Enumerable.Range(0, 8)));
+            new System.Collections.Concurrent.BlockingCollection<int>(new System.Collections.Concurrent.ConcurrentQueue<int>(Enumerable.Range(0, 8)));
 
         private static void EnsureHaglundInitialized()
         {
@@ -193,7 +195,7 @@ namespace BGADLL
 
             // Parse commands: space-separated cards like "AH" or "AH x" or "AH KH x"
             // "x" means play cheapest available (we skip it - DDS handles optimal play)
-            foreach (string token in commands.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            foreach (string token in commands.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (token == "x" || token == "X")
                 {
@@ -248,15 +250,15 @@ namespace BGADLL
         /// </summary>
         private static int TrumpToDds(Trump trump)
         {
-            return trump switch
+            switch (trump)
             {
-                Trump.Spade => 0,
-                Trump.Heart => 1,
-                Trump.Diamond => 2,
-                Trump.Club => 3,
-                Trump.No => 4,
-                _ => 4
-            };
+                case Trump.Spade: return 0;
+                case Trump.Heart: return 1;
+                case Trump.Diamond: return 2;
+                case Trump.Club: return 3;
+                case Trump.No: return 4;
+                default: return 4;
+            }
         }
 
         /// <summary>
@@ -273,10 +275,14 @@ namespace BGADLL
         private static int CardToSuit(string card)
         {
             if (card.Length < 2) return 0;
-            return card[1] switch
+            switch (card[1])
             {
-                'S' => 0, 'H' => 1, 'D' => 2, 'C' => 3, _ => 0
-            };
+                case 'S': return 0;
+                case 'H': return 1;
+                case 'D': return 2;
+                case 'C': return 3;
+                default: return 0;
+            }
         }
 
         /// <summary>
@@ -285,13 +291,13 @@ namespace BGADLL
         private static int CardToRank(string card)
         {
             if (card.Length < 1) return 0;
-            return card[0] switch
+            switch (card[0])
             {
-                '2' => 2, '3' => 3, '4' => 4, '5' => 5,
-                '6' => 6, '7' => 7, '8' => 8, '9' => 9,
-                'T' => 10, 'J' => 11, 'Q' => 12, 'K' => 13, 'A' => 14,
-                _ => 0
-            };
+                case '2': return 2; case '3': return 3; case '4': return 4; case '5': return 5;
+                case '6': return 6; case '7': return 7; case '8': return 8; case '9': return 9;
+                case 'T': return 10; case 'J': return 11; case 'Q': return 12; case 'K': return 13; case 'A': return 14;
+                default: return 0;
+            }
         }
 
         /// <summary>
@@ -299,13 +305,13 @@ namespace BGADLL
         /// </summary>
         private static char RankToChar(int rank)
         {
-            return rank switch
+            switch (rank)
             {
-                2 => '2', 3 => '3', 4 => '4', 5 => '5',
-                6 => '6', 7 => '7', 8 => '8', 9 => '9',
-                10 => 'T', 11 => 'J', 12 => 'Q', 13 => 'K', 14 => 'A',
-                _ => '?'
-            };
+                case 2: return '2'; case 3: return '3'; case 4: return '4'; case 5: return '5';
+                case 6: return '6'; case 7: return '7'; case 8: return '8'; case 9: return '9';
+                case 10: return 'T'; case 11: return 'J'; case 12: return 'Q'; case 13: return 'K'; case 14: return 'A';
+                default: return '?';
+            }
         }
 
         /// <summary>
@@ -313,7 +319,11 @@ namespace BGADLL
         /// </summary>
         private static char SuitToChar(int suit)
         {
-            return suit switch { 0 => 'S', 1 => 'H', 2 => 'D', 3 => 'C', _ => '?' };
+            switch (suit)
+            {
+                case 0: return 'S'; case 1: return 'H'; case 2: return 'D'; case 3: return 'C';
+                default: return '?';
+            }
         }
 
         /// <summary>
@@ -402,7 +412,7 @@ namespace BGADLL
             try
             {
                 var deal = BuildDealPbn(null);
-                var ft = new FutureTricks();
+                var ft = NewFutureTricks();
                 int result = SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
                 if (result == 1 && ft.cards > 0)
                 {
@@ -480,7 +490,7 @@ namespace BGADLL
             try
             {
                 var deal = BuildDealPbn(card);
-                var ft = new FutureTricks();
+                var ft = NewFutureTricks();
                 int result = SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
 
                 if (result != 1 || ft.cards == 0)
