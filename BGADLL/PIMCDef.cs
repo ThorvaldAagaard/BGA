@@ -27,7 +27,7 @@ namespace BGADLL
         private readonly CardTricks output = new CardTricks();
         private readonly Queue queue = new Queue();
         private readonly Utils utils = new Utils();
-        private Random random = null;
+        private CrossPlatformRandom random = null;
         private int noOfCombinations = 0;
         private int combination_n;
         private int combination_k;
@@ -205,13 +205,15 @@ namespace BGADLL
 
             if (declarerConsts.MinHCP + partnerConsts.MinHCP > remainingCards.Sum(c => c.HCP()))
             {
-                Console.WriteLine(string.Format("Constraints not possible - Min HCP {0} {1}", declarerConsts.MinHCP + partnerConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                if (this.verbose)
+                    Console.WriteLine(string.Format("Constraints not possible - Min HCP {0} {1}", declarerConsts.MinHCP + partnerConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
                 declarerConsts.MinHCP = 0;
                 partnerConsts.MinHCP = 0;
             }
             if (declarerConsts.MaxHCP + partnerConsts.MaxHCP < remainingCards.Sum(c => c.HCP()))
             {
-                Console.WriteLine(string.Format("Constraints not possible - Max HCP {0} {1}", declarerConsts.MaxHCP + partnerConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                if (this.verbose)
+                    Console.WriteLine(string.Format("Constraints not possible - Max HCP {0} {1}", declarerConsts.MaxHCP + partnerConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
                 declarerConsts.MaxHCP = 37;
                 partnerConsts.MaxHCP = 37;
             }
@@ -248,7 +250,8 @@ namespace BGADLL
                     {
                         if (count < min || count > max)
                         {
-                            Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
+                            if (this.verbose)
+                                Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
                             declarerConsts[(Suit)index, 0] = 0;
                             partnerConsts[(Suit)index, 0] = 0;
                             declarerConsts[(Suit)index, 1] = 37;
@@ -280,7 +283,8 @@ namespace BGADLL
                 {
                     if (count < min || count > max)
                     {
-                        Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
+                        if (this.verbose)
+                            Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
                         declarerConsts[(Suit)index, 0] = 0;
                         partnerConsts[(Suit)index, 0] = 0;
                         declarerConsts[(Suit)index, 1] = 37;
@@ -395,7 +399,7 @@ namespace BGADLL
             this.leader = player;
 
             seed = this.utils.CalculateSeed(this.dummyHand.ToString() + this.ourHand.ToString());
-            this.random = new Random(seed);
+            this.random = new CrossPlatformRandom(seed);
 
             this.LoadCombinations(remainingCards.Count, remainingCards.Count / 2);
             return null;

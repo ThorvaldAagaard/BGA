@@ -1094,5 +1094,137 @@ namespace BGA.Tests // Create a separate namespace for your tests
             displayResults(minTricks);
 
         }
+
+        /// <summary>
+        /// Regression test for cross-platform Random compatibility.
+        /// 3NT contract, trick 3: South must follow suit in diamonds.
+        /// DT(W) DA(N) D3(E) - South to play from DQ84.
+        /// Correct play is D4 (preserve DQ as winner). DQ is wrong.
+        /// This test verifies that PIMC weighted tricks for D4 > DQ.
+        ///
+        /// Full deal:
+        /// South: SKT.HAT93.DQ84.CAQ98  North: SA9873.HJ4.DA96.CK52
+        /// West:  SQJ42.HK8765.DT2.C76  East:  S65.HQ2.DKJ753.CJT43
+        /// Bidding: 1NT-P-2H-P-2S-P-3NT-P-P-P
+        /// Play: H6 H4 HQ HA | H3 HK HJ H2 | DT DA D3 ??
+        /// </summary>
+        [Test]
+        public void TestCrossPlatform_3NT_DiamondFollow()
+        {
+            Hand fullDeck = "AKQJT98765432.AKQJT98765432.AKQJT98765432.AKQJT98765432".Parse();
+
+            // Hands at the point of evaluation (cards from tricks 1-2 already removed)
+            // North played H4(T1), HJ(T2), DA(T3/current) - DA removed here, re-added by SetupEvaluation
+            Hand north = "A9873..96.K52".Parse();
+            // South played HA(T1), H3(T2) - South hasn't played in trick 3 yet
+            Hand south = "KT.T9.Q84.AQ98".Parse();
+
+            // Current trick: West led DT, North played DA, East played D3
+            Play current_trick = new Play();
+            current_trick.Add(new Card("TD"));
+            current_trick.Add(new Card("AD"));
+            current_trick.Add(new Card("3D"));
+
+            // Previous tricks: H6 H4 HQ HA | H3 HK HJ H2
+            Play previous_tricks = new Play();
+            previous_tricks.Add(new Card("6H"));
+            previous_tricks.Add(new Card("4H"));
+            previous_tricks.Add(new Card("QH"));
+            previous_tricks.Add(new Card("AH"));
+            previous_tricks.Add(new Card("3H"));
+            previous_tricks.Add(new Card("KH"));
+            previous_tricks.Add(new Card("JH"));
+            previous_tricks.Add(new Card("2H"));
+
+            // Opposing cards: all cards minus dummy, declarer, and all played cards
+            // Must NOT include current trick cards (DT, DA, D3) - SetupEvaluation re-adds opponent ones
+            Hand oppos = fullDeck.Except(north).Except(south).Except(current_trick.Cards).Except(previous_tricks.Cards);
+            Console.WriteLine("Opposing cards ({0}): {1}", oppos.Count, oppos);
+
+            int minTricks = 8; // Need 9 total, 1 trick won so far (trick 1 with HA)
+
+            Constraints east = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+
+            pimc.SetupEvaluation(new Hand[2] { north, south }, oppos, current_trick, previous_tricks,
+                new Constraints[2] { east, west }, Macros.Player.South, 200, false, false);
+
+            Trump trump = Trump.No;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(10000);
+            pimc.EndEvaluate();
+
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+
+            // Verify D4 has more weighted tricks than DQ
+            double tricksD4 = pimc.Output.CalculateWeightedTricks("4D");
+            double tricksDQ = pimc.Output.CalculateWeightedTricks("QD");
+            double tricksD8 = pimc.Output.CalculateWeightedTricks("8D");
+            Console.WriteLine("Weighted tricks: D4={0:F4}, D8={1:F4}, DQ={2:F4}", tricksD4, tricksD8, tricksDQ);
+
+            Assert.That(tricksD4, Is.GreaterThan(tricksDQ), "D4 should yield more tricks than DQ (preserve the queen)");
+        }
+
+        /// <summary>
+        /// Simpler cross-platform regression test.
+        /// 3NT, no current trick, South to lead.
+        /// Tests that PIMC evaluation is deterministic across .NET versions
+        /// by checking exact weighted tricks values.
+        ///
+        /// Position: South has AQ of spades and club tricks.
+        /// </summary>
+        [Test]
+        public void TestCrossPlatform_3NT_Simple()
+        {
+            Hand north = "K5.K7.QT543.JT84".Parse();
+            Hand south = "AQ.A42.K72.AQ973".Parse();
+            Play current_trick = new Play();
+            Play previous_tricks = new Play();
+
+            Hand fullDeck = "AKQJT98765432.AKQJT98765432.AKQJT98765432.AKQJT98765432".Parse();
+            Hand oppos = fullDeck.Except(north).Except(south);
+            Console.WriteLine("Opposing cards ({0}): {1}", oppos.Count, oppos);
+
+            int minTricks = 9;
+
+            Constraints east = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+            Constraints west = new Constraints(0, 13, 0, 13, 0, 13, 0, 13, 0, 37);
+
+            pimc.SetupEvaluation(new Hand[2] { north, south }, oppos, current_trick, previous_tricks,
+                new Constraints[2] { east, west }, Macros.Player.South, 200, false, false);
+
+            Trump trump = Trump.No;
+            pimc.Evaluate(trump);
+            pimc.AwaitEvaluation(10000);
+            pimc.EndEvaluate();
+
+            Console.WriteLine("LegalMoves: {0}", pimc.LegalMovesToString);
+            Console.WriteLine("Combinations {0}", pimc.Combinations);
+            Console.WriteLine("Examined {0}", pimc.Examined);
+            Console.WriteLine("Playouts {0}", pimc.Playouts);
+            displayResults(minTricks);
+
+            // Record weighted tricks for each legal move to detect cross-platform differences
+            var legalMoves = pimc.LegalMoves;
+            foreach (string card in legalMoves)
+            {
+                double tricks = pimc.Output.CalculateWeightedTricks(card);
+                Console.WriteLine("CrossPlatformCheck: {0} = {1:F6}", card, tricks);
+            }
+
+            // Basic sanity: we should have playouts
+            Assert.That(pimc.Playouts, Is.GreaterThan(0), "Should have completed some playouts");
+            Assert.That(legalMoves.Length, Is.EqualTo(13), "Should have 13 legal moves");
+
+            // Exact values from CrossPlatformRandom baseline run
+            // These must match across all platforms (.NET Framework + .NET 9 NativeAOT)
+            Assert.That(pimc.Output.CalculateWeightedTricks("KD"), Is.EqualTo(10.952827).Within(0.01), "KD weighted tricks");
+            Assert.That(pimc.Output.CalculateWeightedTricks("7D"), Is.EqualTo(11.093717).Within(0.01), "7D weighted tricks");
+            Assert.That(pimc.Output.CalculateWeightedTricks("2D"), Is.EqualTo(11.156141).Within(0.01), "2D weighted tricks");
+        }
     }
 }

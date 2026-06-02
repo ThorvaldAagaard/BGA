@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using static BGADLL.Macros;
 
@@ -15,6 +17,73 @@ namespace BGADLL
     /// </summary>
     public static class BGAFFI
     {
+        // ===== Native library resolution =====
+        // NativeAOT resolves P/Invoke DLLs relative to the host process (e.g. python.exe),
+        // not relative to the loaded native library. We register a resolver so that
+        // libbcalcdds.dll and dds.dll can be found next to BGADLL.dll.
+        static BGAFFI()
+        {
+            NativeLibrary.SetDllImportResolver(typeof(BGAFFI).Assembly, (libraryName, assembly, searchPath) =>
+            {
+                // Find the directory containing the BGADLL native library itself
+                string assemblyDir = Path.GetDirectoryName(typeof(BGAFFI).Assembly.Location) ?? ".";
+                // For NativeAOT, Assembly.Location may be empty; fall back to process directory
+                if (string.IsNullOrEmpty(assemblyDir) || assemblyDir == ".")
+                {
+                    assemblyDir = AppContext.BaseDirectory ?? ".";
+                }
+                // Also check next to BGADLL.dll by looking at loaded modules
+                string[] searchDirs = GetNativeLibSearchDirs();
+
+                foreach (string dir in searchDirs)
+                {
+                    string candidate = Path.Combine(dir, libraryName);
+                    if (NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                        return handle;
+                    // Try with platform extensions
+                    if (!libraryName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
+                        !libraryName.EndsWith(".so", StringComparison.OrdinalIgnoreCase) &&
+                        !libraryName.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string ext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".dll" :
+                                     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".dylib" : ".so";
+                        candidate = Path.Combine(dir, libraryName + ext);
+                        if (NativeLibrary.TryLoad(candidate, out handle))
+                            return handle;
+                    }
+                }
+                // Fall back to default resolution
+                return IntPtr.Zero;
+            });
+        }
+
+        private static string[] GetNativeLibSearchDirs()
+        {
+            var dirs = new List<string>();
+            // Try to find BGADLL.dll in loaded process modules
+            try
+            {
+                var proc = System.Diagnostics.Process.GetCurrentProcess();
+                foreach (System.Diagnostics.ProcessModule mod in proc.Modules)
+                {
+                    if (mod.ModuleName != null &&
+                        mod.ModuleName.Equals("BGADLL.dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string dir = Path.GetDirectoryName(mod.FileName);
+                        if (!string.IsNullOrEmpty(dir))
+                            dirs.Add(dir);
+                    }
+                }
+            }
+            catch { }
+
+            // Also add common search paths
+            string baseDir = AppContext.BaseDirectory ?? ".";
+            dirs.Add(baseDir);
+            dirs.Add(Environment.CurrentDirectory);
+            return dirs.Distinct().ToArray();
+        }
+
         // ===== Handle management =====
         private static IntPtr Alloc(object obj)
         {
@@ -458,6 +527,23 @@ namespace BGADLL
                 9 => c.MaxHCP,
                 _ => -1
             };
+        }
+
+        // ===== DDS diagnostics =====
+        [UnmanagedCallersOnly(EntryPoint = "bga_dds_backend")]
+        public static IntPtr DdsBackend()
+        {
+            // Trigger the static constructor by creating a temporary DDS instance
+            try
+            {
+                var dds = new DDS("AKQJT.AKQJT.AKQJ.A 98765.98765.T987.K 432.432.6532.QJT9 .......98765432", Trump.No, Player.North);
+                dds.Delete();
+                return AllocString(DDS.UseHaglund ? "haglund" : "bcalcdds");
+            }
+            catch (Exception ex)
+            {
+                return AllocString("error: " + ex.Message);
+            }
         }
 
         // ===== PIMCDef (Defending) =====

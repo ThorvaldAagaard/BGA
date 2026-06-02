@@ -24,7 +24,7 @@ namespace BGADLL
         private readonly CardTricks output = new CardTricks();
         private readonly Queue queue = new Queue();
         private readonly Utils utils = new Utils();
-        private Random random = null;
+        private CrossPlatformRandom random = null;
         private int noOfCombinations = 0;
         private int combination_n;
         private int combination_k;
@@ -212,13 +212,15 @@ namespace BGADLL
             }
             if (eastConsts.MinHCP + westConsts.MinHCP > remainingCards.Sum(c => c.HCP()))
             {
-                Console.WriteLine(string.Format("Constraints not possible - Min HCP {0} {1}", eastConsts.MinHCP + westConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
+                if (this.verbose)
+                    Console.WriteLine(string.Format("Constraints not possible - Min HCP {0} {1}", eastConsts.MinHCP + westConsts.MinHCP, remainingCards.Sum(c => c.HCP())));
                 eastConsts.MinHCP = 0;
                 westConsts.MinHCP = 0;
             }
             if (eastConsts.MaxHCP + westConsts.MaxHCP < remainingCards.Sum(c => c.HCP()))
             {
-                Console.WriteLine(string.Format("Constraints not possible - Max HCP {0} {1}", eastConsts.MaxHCP + westConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
+                if (this.verbose)
+                    Console.WriteLine(string.Format("Constraints not possible - Max HCP {0} {1}", eastConsts.MaxHCP + westConsts.MaxHCP, remainingCards.Sum(c => c.HCP())));
                 eastConsts.MaxHCP = 37;
                 westConsts.MaxHCP = 37;
             }
@@ -257,7 +259,8 @@ namespace BGADLL
                     {
                         if (count < min || count > max)
                         {
-                            Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
+                            if (this.verbose)
+                                Console.WriteLine("Constraints not possible - Suit lengths {0} count={1} min={2} max={3}", (Suit)index, count, min, max);
                             eastConsts[(Suit)index, 0] = 0;
                             westConsts[(Suit)index, 0] = 0;
                             eastConsts[(Suit)index, 1] = 37;
@@ -350,7 +353,7 @@ namespace BGADLL
             this.leader = player;
 
             this.seed = this.utils.CalculateSeed(this.northHand.ToString() + this.southHand.ToString());
-            this.random = new Random(this.seed);
+            this.random = new CrossPlatformRandom(this.seed);
             this.LoadCombinations(remainingCards.Count, remainingCards.Count / 2);
         }
 

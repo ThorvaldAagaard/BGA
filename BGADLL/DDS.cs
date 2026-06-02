@@ -11,6 +11,7 @@ namespace BGADLL
     {
         // ===== Backend detection =====
         private static readonly bool _useHaglund;
+        public static bool UseHaglund => _useHaglund;
 
         static DDS()
         {
@@ -51,51 +52,19 @@ namespace BGADLL
         [DllImport("libbcalcdds.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr bcalcDDS_getLastError(IntPtr solver);
 
-        // ===== Haglund dds.dll native imports =====
-        [DllImport("dds.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void SetMaxThreads(int userThreads);
-
-        [DllImport("dds.dll")]
-        private static extern int SolveBoardPBN(DealPbn dealPBN, int target, int solutions, int mode, ref FutureTricks futureTricks, int threadIndex);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct DealPbn
+        // ===== Haglund DDS via the shared Dds binding (see DdsInterop.cs) =====
+        // The hand-rolled P/Invoke and structs were replaced by the official
+        // DDS 3.0.0 .NET binding (namespace Dds). DdsInterop.cs is vendored from
+        // the DDS repository (dotnet/DdsInterop/) -- edit it there, not here.
+        private static Dds.FutureTricks NewFutureTricks()
         {
-            public int trump;
-            public int first;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-            public int[] currentTrickSuit;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-            public int[] currentTrickRank;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 80)]
-            public char[] remainCards;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct FutureTricks
-        {
-            public int nodes;
-            public int cards;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-            public int[] suit;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-            public int[] rank;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-            public int[] equals;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 13)]
-            public int[] score;
-        }
-
-        private static FutureTricks NewFutureTricks()
-        {
-            var ft = new FutureTricks();
-            ft.nodes = 0;
-            ft.cards = 0;
-            ft.suit = new int[13];
-            ft.rank = new int[13];
-            ft.equals = new int[13];
-            ft.score = new int[13];
-            return ft;
+            return new Dds.FutureTricks
+            {
+                Suit = new int[13],
+                Rank = new int[13],
+                EqualCards = new int[13],
+                Score = new int[13],
+            };
         }
 
         private static bool _haglundInitialized = false;
@@ -111,7 +80,7 @@ namespace BGADLL
             lock (_haglundInitLock)
             {
                 if (_haglundInitialized) return;
-                SetMaxThreads(8);
+                Dds.Native.SetMaxThreads(8);
                 _haglundInitialized = true;
             }
         }
@@ -327,24 +296,25 @@ namespace BGADLL
         }
 
         /// <summary>
-        /// Calculate who leads the current trick after replaying all executed cards.
+        /// Calculate who leads the current trick after replaying all played cards.
         /// Returns DDS player index (0-3).
         /// </summary>
-        private int CalculateCurrentLeader()
+        private int CalculateCurrentLeader(List<string> allPlayedCards = null)
         {
+            var cards = allPlayedCards ?? _executedCards;
             int currentLeader = PlayerToDds(_leader);
             int ddsTrump = TrumpToDds(_trump);
-            int completeTricks = _executedCards.Count / 4;
+            int completeTricks = cards.Count / 4;
 
             for (int trick = 0; trick < completeTricks; trick++)
             {
                 int start = trick * 4;
-                int leadSuit = CardToSuit(_executedCards[start]);
+                int leadSuit = CardToSuit(cards[start]);
                 int winnerOffset = 0, winnerPriority = -1, winnerRank = -1;
 
                 for (int i = 0; i < 4; i++)
                 {
-                    string card = _executedCards[start + i];
+                    string card = cards[start + i];
                     int suit = CardToSuit(card);
                     int rank = CardToRank(card);
                     int priority = (suit == ddsTrump && ddsTrump < 4) ? 2 : (suit == leadSuit) ? 1 : 0;
@@ -413,18 +383,18 @@ namespace BGADLL
             {
                 var deal = BuildDealPbn(null);
                 var ft = NewFutureTricks();
-                int result = SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
-                if (result == 1 && ft.cards > 0)
+                int result = Dds.Native.SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
+                if (result == 1 && ft.Cards > 0)
                 {
                     // Find the cheapest card among legal moves
                     int minRank = int.MaxValue;
                     int minSuit = 0;
-                    for (int i = 0; i < ft.cards; i++)
+                    for (int i = 0; i < ft.Cards; i++)
                     {
-                        if (ft.rank[i] < minRank)
+                        if (ft.Rank[i] < minRank)
                         {
-                            minRank = ft.rank[i];
-                            minSuit = ft.suit[i];
+                            minRank = ft.Rank[i];
+                            minSuit = ft.Suit[i];
                         }
                     }
                     return $"{RankToChar(minRank)}{SuitToChar(minSuit)}";
@@ -440,23 +410,21 @@ namespace BGADLL
         /// <summary>
         /// Build a DealPbn struct from current state.
         /// </summary>
-        private DealPbn BuildDealPbn(string extraCard)
+        private Dds.DealPbn BuildDealPbn(string extraCard)
         {
-            var deal = new DealPbn();
-            deal.trump = TrumpToDds(_trump);
-            deal.currentTrickSuit = new int[3];
-            deal.currentTrickRank = new int[3];
+            var deal = new Dds.DealPbn();
+            deal.Trump = TrumpToDds(_trump);
+            deal.CurrentTrickSuit = new int[3];
+            deal.CurrentTrickRank = new int[3];
 
             // All played cards including the extra card for Tricks(card)
             var allPlayed = new List<string>(_executedCards);
             if (extraCard != null)
                 allPlayed.Add(extraCard);
 
-            // Calculate current trick leader and set current trick cards
-            int currentLeaderBeforeExtra = CalculateCurrentLeader();
-            // If we added the extra card, recalculate with it included
-            // But we need the leader BEFORE the extra card for the current trick
-            deal.first = currentLeaderBeforeExtra;
+            // Calculate who leads using ALL played cards (including extra card).
+            // This correctly determines the trick winner when the extra card completes a trick.
+            deal.First = CalculateCurrentLeader(allPlayed);
 
             // Current trick = cards after last complete trick
             int currentTrickSize = allPlayed.Count % 4;
@@ -465,16 +433,12 @@ namespace BGADLL
             for (int i = 0; i < currentTrickSize && i < 3; i++)
             {
                 string card = allPlayed[startIndex + i];
-                deal.currentTrickSuit[i] = CardToSuit(card);
-                deal.currentTrickRank[i] = CardToRank(card);
+                deal.CurrentTrickSuit[i] = CardToSuit(card);
+                deal.CurrentTrickRank[i] = CardToRank(card);
             }
 
-            // Remove all played cards from PBN
-            string pbn = BuildPbn(extraCard);
-            var chars = new char[80];
-            for (int i = 0; i < Math.Min(pbn.Length, 80); i++)
-                chars[i] = pbn[i];
-            deal.remainCards = chars;
+            // Remaining cards as a PBN string (Dds.DealPbn marshals it for us).
+            deal.RemainCards = BuildPbn(extraCard);
 
             return deal;
         }
@@ -491,12 +455,12 @@ namespace BGADLL
             {
                 var deal = BuildDealPbn(card);
                 var ft = NewFutureTricks();
-                int result = SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
+                int result = Dds.Native.SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
 
-                if (result != 1 || ft.cards == 0)
+                if (result != 1 || ft.Cards == 0)
                     return 0;
 
-                return ft.score[0];
+                return ft.Score[0];
             }
             catch (Exception)
             {

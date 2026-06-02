@@ -7,6 +7,42 @@ using System.Threading.Tasks;
 
 namespace BGADLL
 {
+    /// <summary>
+    /// Cross-platform PRNG that produces identical sequences on all .NET versions.
+    /// System.Random changed its algorithm in .NET 6, so we use our own implementation
+    /// to ensure PIMC evaluations are reproducible across .NET Framework and .NET 9 NativeAOT.
+    /// Based on SplitMix32 (derived from the seed initializer of xoshiro/xoroshiro generators).
+    /// </summary>
+    public class CrossPlatformRandom
+    {
+        private uint _state;
+
+        public CrossPlatformRandom(int seed)
+        {
+            _state = (uint)seed;
+        }
+
+        /// <summary>
+        /// Returns a non-negative random integer less than maxValue.
+        /// </summary>
+        public int Next(int maxValue)
+        {
+            if (maxValue <= 0) return 0;
+            uint raw = NextUInt32();
+            // Use 64-bit multiply + shift to avoid modulo bias
+            return (int)(((ulong)raw * (ulong)maxValue) >> 32);
+        }
+
+        private uint NextUInt32()
+        {
+            _state += 0x9E3779B9u; // golden ratio
+            uint z = _state;
+            z = (z ^ (z >> 16)) * 0x85EBCA6Bu;
+            z = (z ^ (z >> 13)) * 0xC2B2AE35u;
+            return z ^ (z >> 16);
+        }
+    }
+
     public class Utils
     {
 		public IEnumerable<byte[]> Generate(int n, int k)
@@ -87,7 +123,7 @@ namespace BGADLL
 			return result;
         }
 
-		public void Shuffle(int[] array, int sum, Random random)
+		public void Shuffle(int[] array, int sum, CrossPlatformRandom random)
 		{
 			int n = sum;
 			while (n > 1)
@@ -100,7 +136,7 @@ namespace BGADLL
 			}
 		}
 
-        public void ParallelShuffle(int[] array, Random random)
+        public void ParallelShuffle(int[] array, CrossPlatformRandom random)
         {
             Parallel.For(0, array.Length / 2, i =>
             {

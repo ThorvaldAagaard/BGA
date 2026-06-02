@@ -49,6 +49,7 @@
     <Compile Include="Card.cs" />
     <Compile Include="CardTricks.cs" />
     <Compile Include="DDS.cs" />
+    <Compile Include="DdsInterop.cs" />
     <Compile Include="Constraints.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Deck.cs" />

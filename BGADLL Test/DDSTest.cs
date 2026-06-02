@@ -56,5 +56,48 @@ namespace BGA.Tests // Create a separate namespace for your tests
                 //Assert.Pass("An exception occurred: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Test that Tricks(card) returns correct values when the extra card completes a trick.
+        /// Simulates the problematic 3NT position: West leads DT, North plays DA, East plays D3.
+        /// South plays D4/D8/DQ — D4 should yield more tricks than DQ.
+        /// </summary>
+        [Test]
+        public void TestTricksAfterCompleteTrick()
+        {
+            // Full 13-card hands, standard position
+            // North: SA9873.HJ4.DA96.CK52  South: SKT.HAT93.DQ84.CAQ98
+            // West: SQJ42.HK8765.DT2.C76  East: S65.HQ2.DKJ753.CJT43
+            string hands = "A9873.J4.A96.K52 65.Q2.KJ753.JT43 KT.AT93.Q84.AQ98 QJ42.K8765.T2.76";
+
+            // West leads, NT contract
+            DDS dds = new DDS(hands, Trump.No, Player.West);
+            // Play trick 1: H6 H4 HQ HA
+            dds.Execute("6H");
+            dds.Execute("4H");
+            dds.Execute("QH");
+            dds.Execute("AH");
+            // Play trick 2: H3 HK HJ H2
+            dds.Execute("3H");
+            dds.Execute("KH");
+            dds.Execute("JH");
+            dds.Execute("2H");
+            // Current trick 3: DT DA D3
+            dds.Execute("TD");
+            dds.Execute("AD");
+            dds.Execute("3D");
+
+            // South plays each diamond option
+            int tricksD4 = dds.Tricks("4D");
+            int tricksD8 = dds.Tricks("8D");
+            int tricksDQ = dds.Tricks("QD");
+
+            Console.WriteLine("D4={0}, D8={1}, DQ={2}", tricksD4, tricksD8, tricksDQ);
+            Console.WriteLine("DDS backend: {0}", DDS.UseHaglund ? "haglund" : "bcalcdds");
+
+            // D4 should yield at least as many tricks as DQ
+            Assert.That(tricksD4, Is.GreaterThanOrEqualTo(tricksDQ),
+                "D4 should yield at least as many tricks as DQ (preserve the queen)");
+        }
     }
 }
