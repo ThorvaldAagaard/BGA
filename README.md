@@ -2,6 +2,8 @@
 
 This is forked from BGA, and compiled into a DLL used from BEN, the open source bridge engine.
 
+Later added support for dds instead of libcalc, and build for multiplatform.
+
 
 # BGA
 
@@ -11,7 +13,7 @@ Subject: Desktop application for the analysis of gameplay in card game of Bridge
 
 University: Politechnika Bydgoska im. Jana i Jędrzeja Śniadeckich
 
-![alt text](https://raw.githubusercontent.com/Ark223/BGA/main/App.png)
+![alt text](App.png)
 
 ## Introduction
 
