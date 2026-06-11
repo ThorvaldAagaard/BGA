@@ -757,19 +757,22 @@ namespace BGADLL
         public void AwaitEvaluation(int MaxWait)
         {
             var startTime = DateTime.Now;
+            // Wait until a worker signals completion (queue drained) or MaxWait is hit.
             while (this.evaluate && (DateTime.Now - startTime).TotalMilliseconds < MaxWait)
             {
-                Thread.Sleep(10); // Sleep for 50 milliseconds
-                if (!this.evaluate)
-                {
-                    if (this.verbose)
-                        Console.WriteLine("Playouts {0} Execution time {1:F3} Examined {2}", this.playouts, (DateTime.Now - startTime).TotalSeconds, this.examined);
-                    return;
-                }
+                Thread.Sleep(10);
             }
-            // Max execution time exeeded
+            // Stop any workers from dequeuing further combinations.
             this.evaluate = false;
-            // Now wait for all active threads to finish
+            // Wait for all in-flight worker threads to finish writing their current
+            // combination before returning. 'evaluate' is flipped to false as soon as
+            // the queue is empty (the last combination has been *dequeued*), but other
+            // threads may still be mid-playout, having written results for only the
+            // first cards in legalMoves. Returning early let the caller read a
+            // partially-written combination, leaving later cards one result short
+            // (e.g. 199 vs 200) and breaking the per-combination alignment that
+            // SortResults()/calculate.py rely on. Draining activeThreads guarantees
+            // every card has a result for every examined combination.
             while (Interlocked.CompareExchange(ref activeThreads, 0, 0) > 0)
             {
                 //Console.WriteLine("Active threads{0}", activeThreads);
