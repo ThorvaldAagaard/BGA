@@ -15,7 +15,19 @@ namespace BGADLL
 
         static DDS()
         {
-            // Try bcalcdds first (existing behavior), fall back to Haglund's dds.dll
+            // Optional override for testing/diagnostics: force a specific DDS
+            // backend regardless of which native libraries are present. Accepts
+            // "haglund" or "bcalcdds" (case-insensitive) via the BGA_DDS_BACKEND
+            // environment variable. Lets a Windows x64 build run the Haglund path
+            // (the one used on macOS) for implementation-vs-platform A/B testing.
+            string forced = Environment.GetEnvironmentVariable("BGA_DDS_BACKEND");
+            if (!string.IsNullOrWhiteSpace(forced))
+            {
+                _useHaglund = forced.Trim().Equals("haglund", StringComparison.OrdinalIgnoreCase);
+                return;
+            }
+
+            // Default: try bcalcdds first (existing behavior), fall back to Haglund's dds.dll
             try
             {
                 bcalcDDS_delete(IntPtr.Zero); // harmless call to probe the library
@@ -445,22 +457,58 @@ namespace BGADLL
 
         /// <summary>
         /// Solve using Haglund's SolveBoardPBN.
-        /// If card is specified, evaluates that specific card lead.
-        /// Returns tricks for the leader's side.
+        /// Evaluates a specific card as a move by the player currently on turn and
+        /// returns the trick count for THAT player's side -- the same reference
+        /// bcalcdds.getTricksToTakeEx uses (the side choosing the card).
         /// </summary>
+        /// <remarks>
+        /// NOTE: the previous implementation appended <paramref name="card"/> to the
+        /// played list and re-solved from the *next* leader, returning that leader's
+        /// side's tricks (<c>ft.Score[0]</c>). When the card completed a trick won by
+        /// the opponents -- e.g. a defender discarding as 4th hand -- the reference
+        /// side flipped, so the caller (PIMC/PIMCDef, which maximises this value) ended
+        /// up maximising the OPPONENTS' tricks. That is the "strange discard" bug
+        /// (defender threw DK because it maximised declarer's tricks). We now solve the
+        /// current position (player-to-move = the chooser, in-progress trick set) once
+        /// and read the score of the matching card, which is the chooser's side tricks.
+        /// </remarks>
         private int SolveHaglund(string card)
         {
             int threadIndex = _threadIndexPool.Take();
             try
             {
-                var deal = BuildDealPbn(card);
+                // Current position: do NOT append the card. BuildDealPbn(null) keeps the
+                // in-progress trick (deal.First = trick leader) so the side on turn is
+                // the player choosing the card.
+                var deal = BuildDealPbn(null);
                 var ft = NewFutureTricks();
-                int result = Dds.Native.SolveBoardPBN(deal, -1, 1, 1, ref ft, threadIndex);
+                // solutions=3 -> return every legal move with its score so we can match `card`.
+                int result = Dds.Native.SolveBoardPBN(deal, -1, 3, 1, ref ft, threadIndex);
 
                 if (result != 1 || ft.Cards == 0)
                     return 0;
 
-                return ft.Score[0];
+                if (card == null)
+                {
+                    // No specific card: best the side on turn can do.
+                    int best = ft.Score[0];
+                    for (int i = 1; i < ft.Cards; i++)
+                        if (ft.Score[i] > best) best = ft.Score[i];
+                    return best;
+                }
+
+                // Match the requested card. DDS collapses equal-valued cards into one
+                // entry (Rank = a representative, EqualCards = bitmask of the rest),
+                // so accept either the representative rank or membership in its equal set.
+                int wantSuit = CardToSuit(card);
+                int wantRank = CardToRank(card);
+                for (int i = 0; i < ft.Cards; i++)
+                {
+                    if (ft.Suit[i] != wantSuit) continue;
+                    if (ft.Rank[i] == wantRank || (ft.EqualCards[i] & (1 << wantRank)) != 0)
+                        return ft.Score[i];
+                }
+                return 0;  // not a legal move in this position
             }
             catch (Exception)
             {
