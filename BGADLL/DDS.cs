@@ -86,6 +86,35 @@ namespace BGADLL
         private static readonly System.Collections.Concurrent.BlockingCollection<int> _threadIndexPool =
             new System.Collections.Concurrent.BlockingCollection<int>(new System.Collections.Concurrent.ConcurrentQueue<int>(Enumerable.Range(0, 8)));
 
+        // A failed Haglund solve is scored as 0 tricks, which silently skews every
+        // PIMC average (an old Linux libdds.so rejected thread indexes 1-7 with -15
+        // and PIMC played on ~1/8 of its samples). Report each distinct failure
+        // once on stderr so a broken native library is visible in the logs.
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _reportedFailures =
+            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
+
+        private static void ReportFailure(string key, string message)
+        {
+            if (_reportedFailures.TryAdd(key, true))
+                Console.Error.WriteLine($"BGADLL DDS warning: {message} (reported once; the solve is scored as 0 tricks)");
+        }
+
+        private static void ReportDdsError(string where, int code, int threadIndex)
+        {
+            byte[] text = new byte[80];
+            string description;
+            try
+            {
+                Dds.Native.ErrorMessage(code, text);
+                description = Dds.DdsText.Ansi(text, 0, text.Length);
+            }
+            catch (Exception)
+            {
+                description = "unknown error";
+            }
+            ReportFailure($"{where}:{code}", $"{where}: SolveBoardPBN returned {code} ({description}) on thread index {threadIndex}");
+        }
+
         private static void EnsureHaglundInitialized()
         {
             if (_haglundInitialized) return;
@@ -411,6 +440,8 @@ namespace BGADLL
                     }
                     return $"{RankToChar(minRank)}{SuitToChar(minSuit)}";
                 }
+                if (result != 1)
+                    ReportDdsError("FindCheapestCard", result, threadIndex);
             }
             finally
             {
@@ -485,7 +516,12 @@ namespace BGADLL
                 // solutions=3 -> return every legal move with its score so we can match `card`.
                 int result = Dds.Native.SolveBoardPBN(deal, -1, 3, 1, ref ft, threadIndex);
 
-                if (result != 1 || ft.Cards == 0)
+                if (result != 1)
+                {
+                    ReportDdsError("SolveHaglund", result, threadIndex);
+                    return 0;
+                }
+                if (ft.Cards == 0)
                     return 0;
 
                 if (card == null)
@@ -508,10 +544,12 @@ namespace BGADLL
                     if (ft.Rank[i] == wantRank || (ft.EqualCards[i] & (1 << wantRank)) != 0)
                         return ft.Score[i];
                 }
+                ReportFailure("SolveHaglund:missing", $"SolveHaglund: card {card} is not among the {ft.Cards} moves DDS returned");
                 return 0;  // not a legal move in this position
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ReportFailure($"SolveHaglund:{ex.GetType().Name}", $"SolveHaglund: {ex.GetType().Name}: {ex.Message}");
                 return 0;
             }
             finally
