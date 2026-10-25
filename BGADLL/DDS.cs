@@ -136,6 +136,8 @@ namespace BGADLL
         private Trump _trump;
         private Player _leader;
         private List<string> _executedCards; // Cards played via Execute(), format "RS" (e.g., "AH")
+        private Dds.FutureTricks _haglundFt; // solutions=3 solve of the current position
+        private bool _haglundSolved;         // _haglundFt is valid until the next Execute()
 
         // ===== Constructors =====
         public DDS(IntPtr solver) => this.solver = solver;
@@ -202,6 +204,8 @@ namespace BGADLL
                 bcalcDDS_exec(this.solver, cmds);
                 return;
             }
+
+            _haglundSolved = false;  // the position changes, so the cached solve is stale
 
             // Parse commands: space-separated cards like "AH" or "AH x" or "AH KH x"
             // "x" means play cheapest available (we skip it - DDS handles optimal play)
@@ -505,22 +509,45 @@ namespace BGADLL
         /// </remarks>
         private int SolveHaglund(string card)
         {
-            int threadIndex = _threadIndexPool.Take();
-            try
+            // One solutions=3 solve scores every legal move, so the position is solved once
+            // and every Tricks(card) for it is answered from the cached result. PIMC/PIMCDef
+            // ask for each legal move in turn; solving per card multiplied the DDS work by the
+            // number of legal moves (~10x slower than bcalcdds). Execute() clears the cache.
+            if (!_haglundSolved)
             {
-                // Current position: do NOT append the card. BuildDealPbn(null) keeps the
-                // in-progress trick (deal.First = trick leader) so the side on turn is
-                // the player choosing the card.
-                var deal = BuildDealPbn(null);
-                var ft = NewFutureTricks();
-                // solutions=3 -> return every legal move with its score so we can match `card`.
-                int result = Dds.Native.SolveBoardPBN(deal, -1, 3, 1, ref ft, threadIndex);
-
-                if (result != 1)
+                int threadIndex = _threadIndexPool.Take();
+                try
                 {
-                    ReportDdsError("SolveHaglund", result, threadIndex);
+                    // Current position: do NOT append the card. BuildDealPbn(null) keeps the
+                    // in-progress trick (deal.First = trick leader) so the side on turn is
+                    // the player choosing the card.
+                    var deal = BuildDealPbn(null);
+                    var solved = NewFutureTricks();
+                    // solutions=3 -> return every legal move with its score so we can match `card`.
+                    int result = Dds.Native.SolveBoardPBN(deal, -1, 3, 1, ref solved, threadIndex);
+
+                    if (result != 1)
+                    {
+                        ReportDdsError("SolveHaglund", result, threadIndex);
+                        return 0;
+                    }
+                    _haglundFt = solved;
+                    _haglundSolved = true;
+                }
+                catch (Exception ex)
+                {
+                    ReportFailure($"SolveHaglund:{ex.GetType().Name}", $"SolveHaglund: {ex.GetType().Name}: {ex.Message}");
                     return 0;
                 }
+                finally
+                {
+                    _threadIndexPool.Add(threadIndex);
+                }
+            }
+
+            try
+            {
+                var ft = _haglundFt;
                 if (ft.Cards == 0)
                     return 0;
 
@@ -551,10 +578,6 @@ namespace BGADLL
             {
                 ReportFailure($"SolveHaglund:{ex.GetType().Name}", $"SolveHaglund: {ex.GetType().Name}: {ex.Message}");
                 return 0;
-            }
-            finally
-            {
-                _threadIndexPool.Add(threadIndex);
             }
         }
     }

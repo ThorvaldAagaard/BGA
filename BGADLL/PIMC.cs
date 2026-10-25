@@ -453,7 +453,10 @@ namespace BGADLL
                     Interlocked.Decrement(ref this.free);
                     try
                     {
-                        while (!this.queue.IsEmpty)
+                        // Stop when AwaitEvaluation's MaxWait expires (it clears 'evaluate'),
+                        // like BeginEvaluate and PIMCDef do. Without the check the wait was
+                        // unbounded: AwaitEvaluation drained until every queued sample was solved.
+                        while (this.evaluate && !this.queue.IsEmpty)
                         {
                             // repeat if failed to dequeue item
                             if (!this.queue.TryDequeue(out int pos))
