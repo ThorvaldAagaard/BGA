@@ -1,6 +1,7 @@
 #include "model.hpp"
 
 #include <sched.h>
+#include <thread>
 
 #include <cstring>
 #include <unordered_map>
@@ -145,12 +146,17 @@ void shuffle(std::vector<int>& a, int n, CrossPlatformRandom& rnd) {
 }
 
 int processor_count() {
+#if defined(__linux__)
   cpu_set_t set;
   if (sched_getaffinity(0, sizeof set, &set) == 0) {
     int n = CPU_COUNT(&set);
     if (n > 0) return n;
   }
   return 1;
+#else  // macOS has no CPU affinity: the CPUs online, as .NET's Environment.ProcessorCount
+  const unsigned n = std::thread::hardware_concurrency();
+  return n > 0 ? int(n) : 1;
+#endif
 }
 
 }  // namespace bga

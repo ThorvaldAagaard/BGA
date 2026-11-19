@@ -74,6 +74,17 @@ struct Solver {
 std::once_flag g_once;
 Solver g_solver;
 
+// Library file names: ddfast's python/build.sh makes libddfast.so (Linux) / libddfast.dylib
+// (macOS); Haglund's DDS is libdds.so / libdds.dylib (BEN ships it versioned on macOS,
+// bin/BGA/macos/arm64/libdds.2.9.0.dylib: set BGA_DDS_LIB, or BEN preloads it).
+#if defined(__APPLE__)
+constexpr const char* kDdfastLib = "libddfast.dylib";
+constexpr const char* kHaglundLib = "libdds.dylib";
+#else
+constexpr const char* kDdfastLib = "libddfast.so";
+constexpr const char* kHaglundLib = "libdds.so";
+#endif
+
 std::string own_dir() {
   Dl_info info;
   if (dladdr(reinterpret_cast<void*>(&own_dir), &info) && info.dli_fname) {
@@ -99,7 +110,7 @@ bool load_ddfast(Solver& s) {
 #if defined(__x86_64__)
   if (!__builtin_cpu_supports("avx512f") || !__builtin_cpu_supports("bmi2")) return false;
 #endif
-  void* h = open_library("libddfast.so", "BGA_DDFAST_LIB");
+  void* h = open_library(kDdfastLib, "BGA_DDFAST_LIB");
   if (!h) return false;
   auto cr = reinterpret_cast<CardResultsFn>(dlsym(h, kCardResultsSym));
   auto sp = reinterpret_cast<SolvePlayFn>(dlsym(h, kSolvePlaySym));
@@ -115,7 +126,7 @@ bool load_ddfast(Solver& s) {
 }
 
 bool load_haglund(Solver& s) {
-  void* h = open_library("libdds.so", "BGA_DDS_LIB");
+  void* h = open_library(kHaglundLib, "BGA_DDS_LIB");
   if (!h) return false;
   auto solve = reinterpret_cast<SolveBoardPBNFn>(dlsym(h, "SolveBoardPBN"));
   auto smt = reinterpret_cast<SetMaxThreadsFn>(dlsym(h, "SetMaxThreads"));
@@ -133,12 +144,12 @@ const Solver& solver() {
     std::string w = want ? want : "";
     for (char& c : w) c = char(tolower(c));
     if (w == "haglund") {
-      if (!load_haglund(g_solver)) std::fprintf(stderr, "BGADLL: libdds.so (Haglund DDS) not found\n");
+      if (!load_haglund(g_solver)) std::fprintf(stderr, "BGADLL: %s (Haglund DDS) not found\n", kHaglundLib);
       return;
     }
     if (load_ddfast(g_solver)) return;
-    if (w == "ddfast") std::fprintf(stderr, "BGADLL: libddfast.so not found; falling back to Haglund DDS\n");
-    if (!load_haglund(g_solver)) std::fprintf(stderr, "BGADLL: no double-dummy solver found (libddfast.so / libdds.so)\n");
+    if (w == "ddfast") std::fprintf(stderr, "BGADLL: %s not found; falling back to Haglund DDS\n", kDdfastLib);
+    if (!load_haglund(g_solver)) std::fprintf(stderr, "BGADLL: no double-dummy solver found (%s / %s)\n", kDdfastLib, kHaglundLib);
   });
   return g_solver;
 }
