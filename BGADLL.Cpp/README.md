@@ -2,33 +2,36 @@
 
 A C++ port of the BGADLL engine (`PIMC`, `PIMCDef` and the classes they use) with the same C
 ABI as `BGADLL.Native` (the 61 `bga_*` functions of [BGAFFI.cs](../BGADLL.Native/BGAFFI.cs)).
-It is a drop-in for BEN's `bin/BGA/linux/x64/BGADLL.so`: BEN's ctypes bindings
-(`src/pimc/BGADLL_Native.py`) load it unchanged.
+It is a drop-in for BEN's `bin/BGA/linux/x64/BGADLL.so` (and `bin/BGA/macos/arm64/BGADLL.dylib`):
+BEN's ctypes bindings (`src/pimc/BGADLL_Native.py`) load it unchanged.
 
 Its double-dummy solver is [ddfast](https://github.com/randalburns/ddfast)
-(`ddfast::card_results`), with Bo Haglund's DDS as a fallback.
+(`ddfast::card_results`), with Bo Haglund's DDS as a fallback. Without ddfast it runs on DDS
+alone, with the same results as the C# library and no .NET build.
 
-Linux x86-64 only for now.
+Linux x86-64 and macOS (Apple silicon), both tested; Arm Linux builds (`-mcpu=native`) but is untested.
 
 ## Build
 
 ```sh
-BGADLL.Cpp/build.sh          # -> BGADLL.Cpp/bin/BGADLL.so
+BGADLL.Cpp/build.sh          # Linux: BGADLL.Cpp/bin/BGADLL.so; macOS: BGADLL.Cpp/bin/BGADLL.dylib
 ```
 
-g++ (C++17), no other dependencies: libstdc++ is linked statically and the solver library is
-opened at run time with `dlopen`.
+C++17, no other dependencies: g++ on Linux (libstdc++ linked statically, `-march=x86-64-v3` by
+default on x86-64; `ARCH` overrides), clang++ on macOS. The solver library is opened at run
+time with `dlopen`.
 
 ## Use with BEN
 
-Copy `bin/BGADLL.so` over `<ben>/bin/BGA/linux/x64/BGADLL.so`.
+Copy `bin/BGADLL.so` over `<ben>/bin/BGA/linux/x64/BGADLL.so` (macOS: `bin/BGADLL.dylib` over
+`<ben>/bin/BGA/macos/arm64/BGADLL.dylib`).
 
 The solver is chosen once per process:
 
 | | |
 |---|---|
-| `BGA_DDS_BACKEND=ddfast` / `haglund` | force a backend; unset, ddfast if it can be loaded (it needs AVX-512 and BMI2), else Haglund |
-| `BGA_DDFAST_LIB` / `BGA_DDS_LIB` | path of `libddfast.so` / `libdds.so` |
+| `BGA_DDS_BACKEND=ddfast` / `haglund` | force a backend; unset, ddfast if it can be loaded, else Haglund |
+| `BGA_DDFAST_LIB` / `BGA_DDS_LIB` | path of `libddfast` / `libdds` (`.so`, or `.dylib` on macOS) |
 | `DDFAST_TABLES` | ddfast's table directory (as for BEN's own ddfast use) |
 
 A library already in the process is used first. BEN preloads ddfast's `libdds.so`, which
@@ -52,6 +55,13 @@ byte-identical dumps:
 - C++ on Haglund DDS;
 - C++ on ddfast;
 - C# on ddfast's `libdds` shim.
+
+Milliseconds per evaluation over those positions:
+
+| | C# on DDS | C++ on DDS | C# on ddfast | C++ on ddfast |
+|---|---|---|---|---|
+| Linux x86-64 (Zen 5, 12 threads) | 185.5 | 143.9 | 67.7 | 36.0 |
+| macOS (Apple M5, 10 threads) | 133.6 | 124.7 | 31.0 | 21.5 |
 
 ```sh
 g++ -std=c++17 -O2 -o bin/bench_bga bench/bench_bga.cpp -ldl
